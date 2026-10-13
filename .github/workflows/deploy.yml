@@ -41,7 +41,7 @@ jobs:
           npm run build
           cp dist/index.html dist/404.html
         env:
-          VITE_BASE: /${{ github.event.repository.name }}/
+          VITE_BASE: /game-ar-gerak-kepala/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

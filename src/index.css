@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0f172a 60%, #020617 100%);
+    color: white;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow: hidden;
+  }
+
+  .font-heading {
+    font-family: 'Fredoka One', cursive, system-ui;
+    letter-spacing: 0.05em;
+  }
+}
+
+/* UI Kaca (Transparan Bening / Crystal Clear) */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.25);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.glass-panel-modal {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+}
+
+.glass-box {
+  background: rgba(15, 23, 42, 0.20);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* 3D Tilt Transformations */
+.tilt-left-anim {
+  transform: perspective(1000px) rotateY(-12deg) rotateZ(-3deg) scale(1.02);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s ease;
+  box-shadow: -15px 15px 35px rgba(56, 189, 248, 0.3);
+}
+
+.tilt-right-anim {
+  transform: perspective(1000px) rotateY(12deg) rotateZ(3deg) scale(1.02);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s ease;
+  box-shadow: 15px 15px 35px rgba(52, 211, 153, 0.3);
+}
+
+.tilt-neutral {
+  transform: perspective(1000px) rotateY(0deg) rotateZ(0deg) scale(1);
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Option card styling */
+.option-card {
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.option-card.active-tilt-left {
+  transform: scale(1.05) translateY(-4px);
+  border-color: #38bdf8;
+  box-shadow: 0 0 30px rgba(56, 189, 248, 0.5);
+  background: rgba(14, 165, 233, 0.28) !important;
+}
+
+.option-card.active-tilt-right {
+  transform: scale(1.05) translateY(-4px);
+  border-color: #34d399;
+  box-shadow: 0 0 30px rgba(52, 211, 153, 0.5);
+  background: rgba(16, 185, 129, 0.28) !important;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.85) translateY(15px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.animate-pop {
+  animation: pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}

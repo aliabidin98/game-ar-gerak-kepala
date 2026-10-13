@@ -1,0 +1,6 @@
+{
+  "name": "Game AR - Gerak Kepala",
+  "description": "Game kuis edukasi interaktif berbasis Augmented Reality (AR) dengan deteksi gerakan kepala menggunakan kamera webcam. Mendukung mode 1 pemain dan 2 pemain (split screen), bank soal kustom, serta impor/ekspor Excel.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,21 +1,26 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
   <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Game AR - Gerak Kepala</title>
-    <script type="text/javascript">
-      // SPA redirect untuk GitHub Pages (mencegah blank screen saat refresh atau navigasi)
-      var pathSegmentsToKeep = 1;
-      var l = window.location;
-      // Jangan alihkan permintaan berkas aset
-      if (!l.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|json|ico|wasm|woff|woff2)$/i)) {
-        var newPath = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-          l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/';
-        l.replace(newPath + (l.search ? l.search : '') + l.hash);
-      }
-    </script>
+    <meta name="description" content="Game kuis edukasi interaktif berbasis Augmented Reality (AR) dengan deteksi gerakan kepala menggunakan kamera webcam. Mendukung mode 1 pemain dan 2 pemain (split screen), bank soal kustom, serta impor/ekspor Excel." />
+    <meta property="og:title" content="Game AR - Gerak Kepala" />
+    <meta property="og:description" content="Game kuis edukasi interaktif berbasis Augmented Reality (AR) dengan deteksi gerakan kepala menggunakan kamera webcam. Mendukung mode 1 pemain dan 2 pemain (split screen), bank soal kustom, serta impor/ekspor Excel." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- MediaPipe scripts for FaceMesh and Camera -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
   </head>
-  <body style="background: #020617; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
-    <p>Memuat Game AR Gerak Kepala...</p>
+  <body class="bg-slate-950 text-white antialiased overflow-hidden select-none">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -5,8 +5,8 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
-    // Mendukung custom base path via VITE_BASE_PATH atau default './' untuk GitHub Pages
-    base: process.env.VITE_BASE_PATH || './',
+    // Default '/' untuk lingkungan hosting root & AI Studio, atau VITE_BASE jika ditentukan (misal untuk GitHub Pages subpath)
+    base: process.env.VITE_BASE || '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

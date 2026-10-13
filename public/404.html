@@ -1,15 +1,21 @@
 <!DOCTYPE html>
 <html lang="id">
   <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="refresh" content="0; url=./" />
-    <title>Mengalihkan...</title>
-    <script>
-      // Single Page App redirect fallback untuk GitHub Pages
-      window.location.replace('./');
+    <meta charset="utf-8">
+    <title>Game AR - Gerak Kepala</title>
+    <script type="text/javascript">
+      // SPA redirect untuk GitHub Pages (mencegah blank screen saat refresh atau navigasi)
+      var pathSegmentsToKeep = 1;
+      var l = window.location;
+      // Jangan alihkan permintaan berkas aset
+      if (!l.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|json|ico|wasm|woff|woff2)$/i)) {
+        var newPath = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+          l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/';
+        l.replace(newPath + (l.search ? l.search : '') + l.hash);
+      }
     </script>
   </head>
   <body style="background: #020617; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
-    <p>Mengalihkan ke Game AR Gerak Kepala...</p>
+    <p>Memuat Game AR Gerak Kepala...</p>
   </body>
 </html>

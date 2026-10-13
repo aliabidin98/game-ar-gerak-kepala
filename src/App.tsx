@@ -19,6 +19,28 @@ const STORAGE_KEY_QUESTIONS = 'edutilt_questions_v3';
 const STORAGE_KEY_SETTINGS = 'edutilt_settings_v3';
 const STORAGE_KEY_LICENSE = 'edutilt_license_v1';
 
+// Helper penyimpanan aman (mencegah crash di mode sandboxed/private browser)
+function safeGetItem(key: string): string | null {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage.getItem(key);
+    }
+  } catch (e) {
+    console.warn('localStorage getItem failed:', e);
+  }
+  return null;
+}
+
+function safeSetItem(key: string, value: string): void {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(key, value);
+    }
+  } catch (e) {
+    console.warn('localStorage setItem failed:', e);
+  }
+}
+
 const DEFAULT_SETTINGS: GameSettings = {
   targetScore: 50,
   tiltHoldFrames: 10,
@@ -37,28 +59,20 @@ export default function App() {
 
   // License & Activation State
   const [isFullVersion, setIsFullVersion] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_LICENSE);
-      return stored === 'full';
-    } catch {
-      return false;
-    }
+    const stored = safeGetItem(STORAGE_KEY_LICENSE);
+    return stored === 'full';
   });
 
   // Popup aktivasi selalu tampil di awal jika belum pernah aktivasi penuh atau memilih mode demo
   const [showActivationModal, setShowActivationModal] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_LICENSE);
-      return stored !== 'full' && stored !== 'demo';
-    } catch {
-      return true;
-    }
+    const stored = safeGetItem(STORAGE_KEY_LICENSE);
+    return stored !== 'full' && stored !== 'demo';
   });
 
   // Questions State
   const [questions, setQuestions] = useState<Question[]>(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY_QUESTIONS);
+      const stored = safeGetItem(STORAGE_KEY_QUESTIONS);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -74,7 +88,7 @@ export default function App() {
   // Settings State
   const [settings, setSettings] = useState<GameSettings>(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY_SETTINGS);
+      const stored = safeGetItem(STORAGE_KEY_SETTINGS);
       if (stored) {
         return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
       }
@@ -104,32 +118,20 @@ export default function App() {
   const handleActivationSuccess = () => {
     setIsFullVersion(true);
     setShowActivationModal(false);
-    try {
-      localStorage.setItem(STORAGE_KEY_LICENSE, 'full');
-    } catch (e) {
-      console.error('Failed saving license', e);
-    }
+    safeSetItem(STORAGE_KEY_LICENSE, 'full');
   };
 
   // Handler Masuk Mode Demo
   const handleEnterDemoMode = () => {
     setIsFullVersion(false);
     setShowActivationModal(false);
-    try {
-      localStorage.setItem(STORAGE_KEY_LICENSE, 'demo');
-    } catch (e) {
-      console.error('Failed saving demo license', e);
-    }
+    safeSetItem(STORAGE_KEY_LICENSE, 'demo');
   };
 
   // Persist Questions
   const handleSaveQuestions = (updated: Question[]) => {
     setQuestions(updated);
-    try {
-      localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(updated));
-    } catch (e) {
-      console.error('Failed to save questions to localStorage', e);
-    }
+    safeSetItem(STORAGE_KEY_QUESTIONS, JSON.stringify(updated));
   };
 
   const handleResetQuestions = () => {
@@ -142,21 +144,13 @@ export default function App() {
       category: q.category || 'Umum'
     }));
     setQuestions(freshDefaults);
-    try {
-      localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(freshDefaults));
-    } catch (e) {
-      console.error('Failed to reset questions in localStorage', e);
-    }
+    safeSetItem(STORAGE_KEY_QUESTIONS, JSON.stringify(freshDefaults));
   };
 
   // Persist Settings
   const handleUpdateSettings = (newSettings: GameSettings) => {
     setSettings(newSettings);
-    try {
-      localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(newSettings));
-    } catch (e) {
-      console.error('Failed to save settings to localStorage', e);
-    }
+    safeSetItem(STORAGE_KEY_SETTINGS, JSON.stringify(newSettings));
   };
 
   const toggleSound = () => {
@@ -269,7 +263,7 @@ export default function App() {
       {/* Popup Aktivasi Kode Lisensi */}
       <ActivationModal
         isOpen={showActivationModal}
-        canClose={isFullVersion || localStorage.getItem(STORAGE_KEY_LICENSE) === 'demo'}
+        canClose={isFullVersion || safeGetItem(STORAGE_KEY_LICENSE) === 'demo'}
         onActivateSuccess={handleActivationSuccess}
         onEnterDemoMode={handleEnterDemoMode}
         onClose={() => setShowActivationModal(false)}

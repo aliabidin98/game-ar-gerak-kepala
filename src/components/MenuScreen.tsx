@@ -145,17 +145,37 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
           </button>
         )}
 
-        {/* Pilih Nama Acak (Roda Putar) */}
-        <button
-          onClick={() => {
-            soundManager.playClick();
-            onOpenRandomPicker();
-          }}
-          className="w-full py-3.5 px-6 bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 hover:from-amber-500 hover:via-orange-500 hover:to-rose-500 rounded-2xl font-bold text-base md:text-lg transition-all shadow-[0_0_25px_rgba(245,158,11,0.35)] hover:scale-[1.02] flex items-center justify-center gap-3 text-white border border-amber-300/40 cursor-pointer group"
-        >
-          <Disc3 className="w-6 h-6 text-yellow-300 group-hover:rotate-180 transition-transform duration-500 shrink-0" />
-          <span>Pilih Nama Acak (Roda Putar)</span>
-        </button>
+        {/* Pilih Nama Acak (Roda Putar) - Khusus Versi Penuh */}
+        {isFullVersion ? (
+          <button
+            onClick={() => {
+              soundManager.playClick();
+              onOpenRandomPicker();
+            }}
+            className="w-full py-3.5 px-6 bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 hover:from-amber-500 hover:via-orange-500 hover:to-rose-500 rounded-2xl font-bold text-base md:text-lg transition-all shadow-[0_0_25px_rgba(245,158,11,0.35)] hover:scale-[1.02] flex items-center justify-center gap-3 text-white border border-amber-300/40 cursor-pointer group"
+          >
+            <Disc3 className="w-6 h-6 text-yellow-300 group-hover:rotate-180 transition-transform duration-500 shrink-0" />
+            <span>Pilih Nama Acak (Roda Putar)</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              soundManager.playClick();
+              onOpenRandomPicker();
+            }}
+            className="w-full py-3.5 px-5 bg-slate-900/80 hover:bg-slate-800/90 rounded-2xl font-bold text-sm md:text-base transition-all border border-amber-500/30 hover:border-amber-400/60 flex items-center justify-between gap-3 text-gray-300 cursor-pointer group hover:scale-[1.01]"
+            title="Terkunci: Khusus Versi Penuh. Klik untuk aktivasi lisensi."
+          >
+            <div className="flex items-center gap-2.5">
+              <Disc3 className="w-5 h-5 text-amber-400/80 group-hover:rotate-90 transition-transform shrink-0" />
+              <span>Pilih Nama Acak (Roda Putar)</span>
+            </div>
+            <span className="flex items-center gap-1.5 text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-full font-extrabold shrink-0">
+              <Lock className="w-3.5 h-3.5 text-amber-400" />
+              <span>Versi Penuh</span>
+            </span>
+          </button>
+        )}
       </div>
 
       {/* Secondary Menu Buttons */}

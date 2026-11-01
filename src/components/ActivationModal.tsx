@@ -155,8 +155,8 @@ export const ActivationModal: React.FC<ActivationModalProps> = ({
             <Play className="w-4 h-4 text-emerald-400" />
             <span>Masuk Mode Demo (Uji Coba)</span>
           </button>
-          <p className="text-[11px] text-gray-400 mt-2">
-            Mode Demo hanya menampilkan menu <b>1 Pemain</b> dan <b>Bantuan</b>.
+          <p className="text-[11px] text-gray-400 mt-2 leading-relaxed">
+            Mode Demo hanya dapat memainkan menu <b>1 Pemain</b> dan <b>Bantuan</b>. Versi Penuh membuka <b>2 Pemain</b>, <b>Bank Soal</b>, <b>Pengaturan</b>, dan <b>Roda Acak Nama</b>.
           </p>
         </div>
 

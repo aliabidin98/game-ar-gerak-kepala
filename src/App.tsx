@@ -211,11 +211,17 @@ export default function App() {
           }}
           onOpenHelp={() => setScreen('help')}
           onOpenActivation={() => setShowActivationModal(true)}
-          onOpenRandomPicker={() => setScreen('wheel')}
+          onOpenRandomPicker={() => {
+            if (!isFullVersion) {
+              setShowActivationModal(true);
+              return;
+            }
+            setScreen('wheel');
+          }}
         />
       )}
 
-      {screen === 'wheel' && (
+      {screen === 'wheel' && isFullVersion && (
         <RandomPickerScreen
           soundEnabled={settings.soundEnabled}
           onToggleSound={toggleSound}

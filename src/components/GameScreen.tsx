@@ -10,7 +10,9 @@ import {
   CheckCircle2,
   XCircle,
   Eye,
-  EyeOff
+  EyeOff,
+  Maximize,
+  Tv
 } from 'lucide-react';
 import { Question, PlayerState, GameSettings } from '../types';
 import { soundManager } from '../utils/audio';
@@ -446,7 +448,17 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameMode, handleAnswerSubmit]);
 
-  const optFontSize = Math.max(16, Math.round(settings.questionFontSize * 0.72));
+  const isLargeScreen = !!settings.largeScreenMode;
+  const optFontSize = Math.max(isLargeScreen ? 24 : 16, Math.round(settings.questionFontSize * 0.72));
+
+  const toggleFullscreen = () => {
+    soundManager.playClick();
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
 
   // Dynamic Crystal Clear Transparency Styles
   const panelOpacity = Math.max(0.06, Math.min(0.85, (settings.transparencyPercent ?? 20) / 100));
@@ -500,43 +512,68 @@ export const GameScreen: React.FC<GameScreenProps> = ({
       </div>
 
       {/* Top Header Bar */}
-      <header className="relative z-30 flex items-center justify-between px-4 md:px-8 py-3.5 backdrop-blur-md bg-slate-950/50 border-b border-white/10 shrink-0">
+      <header className={`relative z-30 flex items-center justify-between backdrop-blur-md bg-slate-950/50 border-b border-white/10 shrink-0 ${
+        isLargeScreen ? 'px-6 md:px-12 py-4' : 'px-4 md:px-8 py-3.5'
+      }`}>
         <button
           onClick={() => {
             soundManager.playClick();
             onEndGame();
           }}
-          className="py-2 px-4 bg-red-600/90 hover:bg-red-500 active:bg-red-700 text-white font-bold rounded-xl shadow-lg border border-red-400/30 flex items-center gap-2 text-sm transition-transform hover:scale-105 cursor-pointer"
+          className={`bg-red-600/90 hover:bg-red-500 active:bg-red-700 text-white font-bold rounded-xl shadow-lg border border-red-400/30 flex items-center gap-2 transition-transform hover:scale-105 cursor-pointer ${
+            isLargeScreen ? 'py-2.5 px-5 text-base' : 'py-2 px-4 text-sm'
+          }`}
         >
-          <ArrowLeft className="w-4 h-4" /> Keluar
+          <ArrowLeft className={isLargeScreen ? 'w-5 h-5' : 'w-4 h-4'} /> Keluar
         </button>
 
         {/* Score Board */}
         <div className="flex items-center gap-3">
-          <div className="font-heading text-lg md:text-2xl bg-slate-900/90 px-6 py-2 rounded-2xl border border-yellow-400/40 shadow-[0_0_20px_rgba(0,0,0,0.6)] flex items-center gap-2">
+          <div className={`font-heading bg-slate-900/90 rounded-2xl border border-yellow-400/40 shadow-[0_0_20px_rgba(0,0,0,0.6)] flex items-center gap-2 ${
+            isLargeScreen ? 'text-2xl md:text-3xl px-8 py-2.5' : 'text-lg md:text-2xl px-6 py-2'
+          }`}>
             {gameMode === 1 ? (
               <>
                 <span className="text-yellow-400">Skor:</span>
-                <span className="text-white">{p1.score}</span>
+                <span className="text-white font-extrabold">{p1.score}</span>
                 <span className="text-gray-400 text-sm md:text-base font-normal">/ {settings.targetScore}</span>
               </>
             ) : (
               <>
-                <span className="text-cyan-400">P1: {p1.score}</span>
+                <span className="text-cyan-400 font-extrabold">P1: {p1.score}</span>
                 <span className="text-gray-500 font-normal">|</span>
                 <span className="text-yellow-400 text-sm md:text-base">Target {settings.targetScore}</span>
                 <span className="text-gray-500 font-normal">|</span>
-                <span className="text-emerald-400">P2: {p2.score}</span>
+                <span className="text-emerald-400 font-extrabold">P2: {p2.score}</span>
               </>
             )}
           </div>
+
+          {isLargeScreen && (
+            <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-400/50 text-cyan-300 text-xs font-bold shadow">
+              <Tv className="w-3.5 h-3.5" />
+              <span>75" TV Mode</span>
+            </span>
+          )}
         </div>
 
         {/* Right utility buttons */}
         <div className="flex items-center gap-2">
+          {/* Fullscreen Button */}
+          <button
+            onClick={toggleFullscreen}
+            className={`rounded-xl bg-slate-800/80 hover:bg-slate-700 text-cyan-300 border border-slate-700 cursor-pointer flex items-center gap-1.5 ${
+              isLargeScreen ? 'p-3 text-sm' : 'p-2.5 text-xs'
+            }`}
+            title="Layar Penuh (Fullscreen)"
+          >
+            <Maximize className={isLargeScreen ? 'w-5 h-5' : 'w-4 h-4'} />
+            <span className="hidden xl:inline">Layar Penuh</span>
+          </button>
+
           <button
             onClick={() => setShowKeyHints(!showKeyHints)}
-            className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-gray-300 border border-slate-700 text-xs hidden md:flex items-center gap-1.5"
+            className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-gray-300 border border-slate-700 text-xs hidden md:flex items-center gap-1.5"
             title="Tampilkan / Sembunyikan Bantuan Tombol"
           >
             <Keyboard className="w-4 h-4 text-cyan-400" />
@@ -545,10 +582,16 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
           <button
             onClick={onToggleSound}
-            className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-gray-300 border border-slate-700 cursor-pointer"
+            className={`rounded-xl bg-slate-800/80 hover:bg-slate-700 text-gray-300 border border-slate-700 cursor-pointer ${
+              isLargeScreen ? 'p-3' : 'p-2.5'
+            }`}
             title={settings.soundEnabled ? 'Matikan Suara' : 'Nyalakan Suara'}
           >
-            {settings.soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4 text-gray-400" />}
+            {settings.soundEnabled ? (
+              <Volume2 className={isLargeScreen ? 'w-5 h-5 text-emerald-400' : 'w-4 h-4 text-emerald-400'} />
+            ) : (
+              <VolumeX className={isLargeScreen ? 'w-5 h-5 text-gray-400' : 'w-4 h-4 text-gray-400'} />
+            )}
           </button>
         </div>
       </header>
@@ -605,18 +648,26 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         >
           <div
             style={panelGlassStyle}
-            className="w-full max-w-2xl glass-panel p-5 md:p-8 rounded-[2rem] flex flex-col justify-between border border-white/25 relative shadow-2xl transition-all"
+            className={`w-full glass-panel border border-white/25 relative shadow-2xl transition-all flex flex-col justify-between ${
+              isLargeScreen
+                ? (gameMode === 1 ? 'max-w-4xl p-6 md:p-10 rounded-[2.5rem]' : 'max-w-2xl p-5 md:p-7 rounded-[2rem]')
+                : 'max-w-2xl p-5 md:p-8 rounded-[2rem]'
+            }`}
           >
             {/* Player Badge & Tilt Angle HUD */}
-            <div className="flex items-center justify-between mb-4">
-              <span className="px-4 py-1 rounded-full text-xs md:text-sm font-bold uppercase tracking-wider bg-blue-600/40 border border-blue-400 text-blue-200 shadow-[0_0_15px_rgba(96,165,250,0.3)]">
+            <div className={`flex items-center justify-between ${isLargeScreen ? 'mb-5' : 'mb-4'}`}>
+              <span className={`rounded-full font-bold uppercase tracking-wider bg-blue-600/40 border border-blue-400 text-blue-200 shadow-[0_0_15px_rgba(96,165,250,0.3)] ${
+                isLargeScreen ? 'px-5 py-1.5 text-sm md:text-base' : 'px-4 py-1 text-xs md:text-sm'
+              }`}>
                 Pemain 1
               </span>
 
               {/* Head Tilt Angle Badge */}
-              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-700 text-xs">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                <span className="text-gray-300 font-mono">
+              <div className={`flex items-center gap-2 rounded-full bg-slate-900/80 border border-slate-700 ${
+                isLargeScreen ? 'px-4 py-1.5 text-xs md:text-sm' : 'px-3 py-1 text-xs'
+              }`}>
+                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
+                <span className="text-gray-300 font-mono font-bold">
                   {p1.tiltDirection === 'kiri'
                     ? `👈 Miring Kiri (${Math.abs(p1.currentAngle)}°)`
                     : p1.tiltDirection === 'kanan'
@@ -629,11 +680,15 @@ export const GameScreen: React.FC<GameScreenProps> = ({
             {/* Question Card */}
             <div
               style={questionBoxStyle}
-              className="glass-box p-5 md:p-8 rounded-3xl mb-5 min-h-[140px] md:min-h-[160px] flex items-center justify-center text-center relative overflow-hidden border border-white/20 transition-all"
+              className={`glass-box rounded-3xl mb-5 flex items-center justify-center text-center relative overflow-hidden border border-white/20 transition-all ${
+                isLargeScreen
+                  ? 'p-6 md:p-10 min-h-[160px] md:min-h-[200px]'
+                  : 'p-5 md:p-8 min-h-[140px] md:min-h-[160px]'
+              }`}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-transparent pointer-events-none" />
               <h2
-                className="font-bold text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)] leading-tight relative z-10 transition-all select-none"
+                className="font-bold text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] leading-tight relative z-10 transition-all select-none"
                 style={{ fontSize: `${settings.questionFontSize}px` }}
               >
                 {p1.currentQ?.q || 'Memuat soal...'}
@@ -648,7 +703,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 onClick={() => handleAnswerSubmit(1, 'kiri')}
                 disabled={p1.isAnswering}
                 style={getOptionCardStyle(p1.tiltDirection === 'kiri', 'sky')}
-                className={`option-card text-left p-4 md:p-6 rounded-3xl border-2 transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
+                className={`option-card text-left rounded-3xl border-2 transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
+                  isLargeScreen ? 'p-5 md:p-7 min-h-[140px]' : 'p-4 md:p-6'
+                } ${
                   p1.tiltDirection === 'kiri'
                     ? 'active-tilt-left border-sky-400'
                     : 'glass-box border-white/20 hover:border-slate-400'
@@ -656,17 +713,19 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs md:text-sm font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1 drop-shadow">
+                    <span className={`font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1 drop-shadow ${
+                      isLargeScreen ? 'text-sm md:text-base' : 'text-xs md:text-sm'
+                    }`}>
                       👈 Miring Kiri
                     </span>
                     {showKeyHints && (
-                      <span className="text-[10px] bg-slate-900/80 text-gray-300 px-1.5 py-0.5 rounded border border-slate-600">
+                      <span className="text-[10px] md:text-xs bg-slate-900/80 text-gray-300 px-2 py-0.5 rounded border border-slate-600 font-bold">
                         Tombol A
                       </span>
                     )}
                   </div>
                   <p
-                    className="font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] transition-all"
+                    className="font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] transition-all leading-snug"
                     style={{ fontSize: `${optFontSize}px` }}
                   >
                     {p1.currentQ?.l || 'Opsi Kiri'}
@@ -674,7 +733,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full h-3.5 bg-black/60 rounded-full overflow-hidden mt-4 border border-white/10">
+                <div className={`w-full bg-black/60 rounded-full overflow-hidden mt-4 border border-white/10 ${
+                  isLargeScreen ? 'h-5' : 'h-3.5'
+                }`}>
                   <div
                     className="h-full bg-gradient-to-r from-sky-400 to-cyan-400 transition-all duration-75 shadow-[0_0_12px_rgba(56,189,248,0.7)]"
                     style={{
@@ -690,7 +751,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 onClick={() => handleAnswerSubmit(1, 'kanan')}
                 disabled={p1.isAnswering}
                 style={getOptionCardStyle(p1.tiltDirection === 'kanan', 'emerald')}
-                className={`option-card text-left p-4 md:p-6 rounded-3xl border-2 transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
+                className={`option-card text-left rounded-3xl border-2 transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
+                  isLargeScreen ? 'p-5 md:p-7 min-h-[140px]' : 'p-4 md:p-6'
+                } ${
                   p1.tiltDirection === 'kanan'
                     ? 'active-tilt-right border-emerald-400'
                     : 'glass-box border-white/20 hover:border-slate-400'
@@ -698,17 +761,19 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs md:text-sm font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1 drop-shadow">
+                    <span className={`font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1 drop-shadow ${
+                      isLargeScreen ? 'text-sm md:text-base' : 'text-xs md:text-sm'
+                    }`}>
                       Miring Kanan 👉
                     </span>
                     {showKeyHints && (
-                      <span className="text-[10px] bg-slate-900/80 text-gray-300 px-1.5 py-0.5 rounded border border-slate-600">
+                      <span className="text-[10px] md:text-xs bg-slate-900/80 text-gray-300 px-2 py-0.5 rounded border border-slate-600 font-bold">
                         Tombol D
                       </span>
                     )}
                   </div>
                   <p
-                    className="font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] transition-all"
+                    className="font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] transition-all leading-snug"
                     style={{ fontSize: `${optFontSize}px` }}
                   >
                     {p1.currentQ?.r || 'Opsi Kanan'}
@@ -716,7 +781,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full h-3.5 bg-black/60 rounded-full overflow-hidden mt-4 border border-white/10">
+                <div className={`w-full bg-black/60 rounded-full overflow-hidden mt-4 border border-white/10 ${
+                  isLargeScreen ? 'h-5' : 'h-3.5'
+                }`}>
                   <div
                     className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 transition-all duration-75 shadow-[0_0_12px_rgba(52,211,153,0.7)]"
                     style={{
@@ -731,15 +798,17 @@ export const GameScreen: React.FC<GameScreenProps> = ({
             {p1.isAnswering && (
               <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-slate-950/90 rounded-[2rem] border border-white/20 animate-pop">
                 {p1.feedback === 'correct' ? (
-                  <CheckCircle2 className="w-20 h-20 text-emerald-400 mb-2 animate-bounce" />
+                  <CheckCircle2 className={`${isLargeScreen ? 'w-28 h-28' : 'w-20 h-20'} text-emerald-400 mb-2 animate-bounce`} />
                 ) : (
-                  <XCircle className="w-20 h-20 text-red-400 mb-2 animate-pulse" />
+                  <XCircle className={`${isLargeScreen ? 'w-28 h-28' : 'w-20 h-20'} text-red-400 mb-2 animate-pulse`} />
                 )}
                 <h3
-                  className={`text-5xl md:text-6xl font-heading ${
+                  className={`font-heading font-extrabold ${
+                    isLargeScreen ? 'text-6xl md:text-8xl' : 'text-5xl md:text-6xl'
+                  } ${
                     p1.feedback === 'correct'
-                      ? 'text-emerald-400 drop-shadow-[0_0_25px_rgba(52,211,153,0.8)]'
-                      : 'text-red-400 drop-shadow-[0_0_25px_rgba(248,113,113,0.8)]'
+                      ? 'text-emerald-400 drop-shadow-[0_0_35px_rgba(52,211,153,0.9)]'
+                      : 'text-red-400 drop-shadow-[0_0_35px_rgba(248,113,113,0.9)]'
                   }`}
                 >
                   {p1.feedbackText}
@@ -767,18 +836,26 @@ export const GameScreen: React.FC<GameScreenProps> = ({
           >
             <div
               style={panelGlassStyle}
-              className="w-full max-w-2xl glass-panel p-5 md:p-8 rounded-[2rem] flex flex-col justify-between border border-white/25 relative shadow-2xl transition-all"
+              className={`w-full glass-panel border border-white/25 relative shadow-2xl transition-all flex flex-col justify-between ${
+                isLargeScreen
+                  ? 'max-w-2xl p-5 md:p-7 rounded-[2rem]'
+                  : 'max-w-2xl p-5 md:p-8 rounded-[2rem]'
+              }`}
             >
               {/* Player Badge & Tilt Angle HUD */}
-              <div className="flex items-center justify-between mb-4">
-                <span className="px-4 py-1 rounded-full text-xs md:text-sm font-bold uppercase tracking-wider bg-emerald-600/40 border border-emerald-400 text-emerald-200 shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+              <div className={`flex items-center justify-between ${isLargeScreen ? 'mb-5' : 'mb-4'}`}>
+                <span className={`rounded-full font-bold uppercase tracking-wider bg-emerald-600/40 border border-emerald-400 text-emerald-200 shadow-[0_0_15px_rgba(52,211,153,0.3)] ${
+                  isLargeScreen ? 'px-5 py-1.5 text-sm md:text-base' : 'px-4 py-1 text-xs md:text-sm'
+                }`}>
                   Pemain 2
                 </span>
 
                 {/* Head Tilt Angle Badge */}
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-700 text-xs">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-gray-300 font-mono">
+                <div className={`flex items-center gap-2 rounded-full bg-slate-900/80 border border-slate-700 ${
+                  isLargeScreen ? 'px-4 py-1.5 text-xs md:text-sm' : 'px-3 py-1 text-xs'
+                }`}>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-gray-300 font-mono font-bold">
                     {p2.tiltDirection === 'kiri'
                       ? `👈 Miring Kiri (${Math.abs(p2.currentAngle)}°)`
                       : p2.tiltDirection === 'kanan'
@@ -791,11 +868,15 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               {/* Question Card */}
               <div
                 style={questionBoxStyle}
-                className="glass-box p-5 md:p-8 rounded-3xl mb-5 min-h-[140px] md:min-h-[160px] flex items-center justify-center text-center relative overflow-hidden border border-white/20 transition-all"
+                className={`glass-box rounded-3xl mb-5 flex items-center justify-center text-center relative overflow-hidden border border-white/20 transition-all ${
+                  isLargeScreen
+                    ? 'p-5 md:p-8 min-h-[160px] md:min-h-[190px]'
+                    : 'p-5 md:p-8 min-h-[140px] md:min-h-[160px]'
+                }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-bl from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
                 <h2
-                  className="font-bold text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)] leading-tight relative z-10 transition-all select-none"
+                  className="font-bold text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] leading-tight relative z-10 transition-all select-none"
                   style={{ fontSize: `${settings.questionFontSize}px` }}
                 >
                   {p2.currentQ?.q || 'Memuat soal...'}
@@ -810,7 +891,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                   onClick={() => handleAnswerSubmit(2, 'kiri')}
                   disabled={p2.isAnswering}
                   style={getOptionCardStyle(p2.tiltDirection === 'kiri', 'sky')}
-                  className={`option-card text-left p-4 md:p-6 rounded-3xl border-2 transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
+                  className={`option-card text-left rounded-3xl border-2 transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
+                    isLargeScreen ? 'p-4 md:p-6 min-h-[130px]' : 'p-4 md:p-6'
+                  } ${
                     p2.tiltDirection === 'kiri'
                       ? 'active-tilt-left border-sky-400'
                       : 'glass-box border-white/20 hover:border-slate-400'
@@ -818,17 +901,19 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs md:text-sm font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1 drop-shadow">
+                      <span className={`font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1 drop-shadow ${
+                        isLargeScreen ? 'text-sm md:text-base' : 'text-xs md:text-sm'
+                      }`}>
                         👈 Miring Kiri
                       </span>
                       {showKeyHints && (
-                        <span className="text-[10px] bg-slate-900/80 text-gray-300 px-1.5 py-0.5 rounded border border-slate-600">
+                        <span className="text-[10px] md:text-xs bg-slate-900/80 text-gray-300 px-2 py-0.5 rounded border border-slate-600 font-bold">
                           Panah Kiri
                         </span>
                       )}
                     </div>
                     <p
-                      className="font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] transition-all"
+                      className="font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] transition-all leading-snug"
                       style={{ fontSize: `${optFontSize}px` }}
                     >
                       {p2.currentQ?.l || 'Opsi Kiri'}
@@ -836,7 +921,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                   </div>
 
                   {/* Progress bar */}
-                  <div className="w-full h-3.5 bg-black/60 rounded-full overflow-hidden mt-4 border border-white/10">
+                  <div className={`w-full bg-black/60 rounded-full overflow-hidden mt-4 border border-white/10 ${
+                    isLargeScreen ? 'h-5' : 'h-3.5'
+                  }`}>
                     <div
                       className="h-full bg-gradient-to-r from-sky-400 to-cyan-400 transition-all duration-75 shadow-[0_0_12px_rgba(56,189,248,0.7)]"
                       style={{
@@ -852,7 +939,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                   onClick={() => handleAnswerSubmit(2, 'kanan')}
                   disabled={p2.isAnswering}
                   style={getOptionCardStyle(p2.tiltDirection === 'kanan', 'emerald')}
-                  className={`option-card text-left p-4 md:p-6 rounded-3xl border-2 transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
+                  className={`option-card text-left rounded-3xl border-2 transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
+                    isLargeScreen ? 'p-4 md:p-6 min-h-[130px]' : 'p-4 md:p-6'
+                  } ${
                     p2.tiltDirection === 'kanan'
                       ? 'active-tilt-right border-emerald-400'
                       : 'glass-box border-white/20 hover:border-slate-400'
@@ -860,17 +949,19 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs md:text-sm font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1 drop-shadow">
+                      <span className={`font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1 drop-shadow ${
+                        isLargeScreen ? 'text-sm md:text-base' : 'text-xs md:text-sm'
+                      }`}>
                         Miring Kanan 👉
                       </span>
                       {showKeyHints && (
-                        <span className="text-[10px] bg-slate-900/80 text-gray-300 px-1.5 py-0.5 rounded border border-slate-600">
+                        <span className="text-[10px] md:text-xs bg-slate-900/80 text-gray-300 px-2 py-0.5 rounded border border-slate-600 font-bold">
                           Panah Kanan
                         </span>
                       )}
                     </div>
                     <p
-                      className="font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] transition-all"
+                      className="font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] transition-all leading-snug"
                       style={{ fontSize: `${optFontSize}px` }}
                     >
                       {p2.currentQ?.r || 'Opsi Kanan'}
@@ -878,7 +969,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                   </div>
 
                   {/* Progress bar */}
-                  <div className="w-full h-3.5 bg-black/60 rounded-full overflow-hidden mt-4 border border-white/10">
+                  <div className={`w-full bg-black/60 rounded-full overflow-hidden mt-4 border border-white/10 ${
+                    isLargeScreen ? 'h-5' : 'h-3.5'
+                  }`}>
                     <div
                       className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 transition-all duration-75 shadow-[0_0_12px_rgba(52,211,153,0.7)]"
                       style={{
@@ -893,15 +986,17 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               {p2.isAnswering && (
                 <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-slate-950/90 rounded-[2rem] border border-white/20 animate-pop">
                   {p2.feedback === 'correct' ? (
-                    <CheckCircle2 className="w-20 h-20 text-emerald-400 mb-2 animate-bounce" />
+                    <CheckCircle2 className={`${isLargeScreen ? 'w-28 h-28' : 'w-20 h-20'} text-emerald-400 mb-2 animate-bounce`} />
                   ) : (
-                    <XCircle className="w-20 h-20 text-red-400 mb-2 animate-pulse" />
+                    <XCircle className={`${isLargeScreen ? 'w-28 h-28' : 'w-20 h-20'} text-red-400 mb-2 animate-pulse`} />
                   )}
                   <h3
-                    className={`text-5xl md:text-6xl font-heading ${
+                    className={`font-heading font-extrabold ${
+                      isLargeScreen ? 'text-6xl md:text-8xl' : 'text-5xl md:text-6xl'
+                    } ${
                       p2.feedback === 'correct'
-                        ? 'text-emerald-400 drop-shadow-[0_0_25px_rgba(52,211,153,0.8)]'
-                        : 'text-red-400 drop-shadow-[0_0_25px_rgba(248,113,113,0.8)]'
+                        ? 'text-emerald-400 drop-shadow-[0_0_35px_rgba(52,211,153,0.9)]'
+                        : 'text-red-400 drop-shadow-[0_0_35px_rgba(248,113,113,0.9)]'
                     }`}
                   >
                     {p2.feedbackText}

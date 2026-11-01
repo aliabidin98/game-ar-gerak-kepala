@@ -12,7 +12,10 @@ import {
   X,
   Scan,
   Sparkles,
-  Layers
+  Layers,
+  Tv,
+  Maximize,
+  Monitor
 } from 'lucide-react';
 import { GameSettings } from '../types';
 import { soundManager } from '../utils/audio';
@@ -30,8 +33,49 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 }) => {
   const adjustFontSize = (amount: number) => {
     soundManager.playClick();
-    const nextVal = Math.min(60, Math.max(20, settings.questionFontSize + amount));
+    const nextVal = Math.min(76, Math.max(20, settings.questionFontSize + amount));
     onUpdateSettings({ ...settings, questionFontSize: nextVal });
+  };
+
+  const setFontSizePreset = (size: number) => {
+    soundManager.playClick();
+    onUpdateSettings({ ...settings, questionFontSize: size });
+  };
+
+  const apply75InchPreset = () => {
+    soundManager.playCorrect();
+    onUpdateSettings({
+      ...settings,
+      largeScreenMode: true,
+      questionFontSize: 54,
+      targetScore: Math.max(50, settings.targetScore),
+      tiltSensitivity: 9,
+      tiltHoldFrames: 8,
+      transparencyPercent: 25,
+      enableBlur: false
+    });
+  };
+
+  const applyStandardPreset = () => {
+    soundManager.playClick();
+    onUpdateSettings({
+      ...settings,
+      largeScreenMode: false,
+      questionFontSize: 36,
+      tiltSensitivity: 10,
+      tiltHoldFrames: 10,
+      transparencyPercent: 20,
+      enableBlur: false
+    });
+  };
+
+  const handleToggleFullscreen = () => {
+    soundManager.playClick();
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
   };
 
   const adjustScore = (amount: number) => {
@@ -111,6 +155,73 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       </p>
 
       <div className="space-y-4 md:space-y-5">
+        {/* ================= OPTIMASI LAYAR 75 INCH (TV & SMARTBOARD KELAS) ================= */}
+        <div className="bg-gradient-to-r from-blue-950/90 via-slate-900 to-cyan-950/90 p-5 md:p-6 rounded-2xl border-2 border-cyan-400/50 shadow-[0_0_25px_rgba(6,182,212,0.25)] relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+            <label className="text-sm md:text-base font-extrabold text-white uppercase tracking-wider flex items-center gap-2">
+              <Tv className="w-5 h-5 text-cyan-400" />
+              <span>Optimasi Layar 75 Inch (TV / Smartboard)</span>
+            </label>
+            <span
+              className={`text-xs px-3 py-1 rounded-full font-bold border transition-all ${
+                settings.largeScreenMode
+                  ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.5)]'
+                  : 'bg-slate-800 border-slate-600 text-gray-400'
+              }`}
+            >
+              {settings.largeScreenMode ? '📺 AKTIF (Jumbo UI 75")' : 'NONAKTIF (Normal)'}
+            </span>
+          </div>
+
+          <p className="text-xs text-gray-300 mb-4 leading-relaxed">
+            Menyesuaikan kartu soal, font raksasa, papan skor kontras tinggi, dan jarak deteksi kamera agar terbaca dan dimainkan dengan nyaman dari jarak 3–8 meter di kelas.
+          </p>
+
+          {/* Preset Buttons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-3">
+            <button
+              type="button"
+              onClick={apply75InchPreset}
+              className={`py-3 px-3.5 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer border ${
+                settings.largeScreenMode
+                  ? 'bg-gradient-to-r from-cyan-600 to-blue-600 border-cyan-300 text-white shadow-[0_0_20px_rgba(6,182,212,0.5)] scale-[1.01]'
+                  : 'bg-slate-800/80 border-slate-600 text-gray-300 hover:border-cyan-400'
+              }`}
+            >
+              <Tv className="w-4 h-4 text-cyan-300" />
+              <span>Aktifkan Preset TV 75"</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={applyStandardPreset}
+              className={`py-3 px-3.5 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer border ${
+                !settings.largeScreenMode
+                  ? 'bg-slate-700 border-slate-400 text-white shadow-md'
+                  : 'bg-slate-800/80 border-slate-700 text-gray-400 hover:border-slate-500'
+              }`}
+            >
+              <Monitor className="w-4 h-4 text-gray-400" />
+              <span>Mode Standar (Laptop / PC)</span>
+            </button>
+          </div>
+
+          {/* Fullscreen Button */}
+          <div className="pt-2.5 border-t border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+            <span className="text-[11px] text-gray-400 flex items-center gap-1.5">
+              <span>💡 Aktifkan layar penuh agar tampilan bersih tanpa bilah tab browser.</span>
+            </span>
+            <button
+              type="button"
+              onClick={handleToggleFullscreen}
+              className="py-1.5 px-3 bg-cyan-950/90 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer hover:scale-105"
+            >
+              <Maximize className="w-3.5 h-3.5" />
+              <span>Layar Penuh (Fullscreen)</span>
+            </button>
+          </div>
+        </div>
+
         {/* PENGATURAN TRANSPARANSI KOTAK SOAL & JAWABAN */}
         <div className="bg-slate-900/85 p-5 rounded-2xl border border-cyan-500/30 shadow-inner">
           <div className="flex items-center justify-between mb-1">
@@ -281,6 +392,54 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               aria-label="Perbesar huruf"
             >
               +
+            </button>
+          </div>
+
+          {/* Preset Buttons for Font Size */}
+          <div className="grid grid-cols-4 gap-1.5 mt-2.5">
+            <button
+              type="button"
+              onClick={() => setFontSizePreset(36)}
+              className={`py-1.5 px-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+                settings.questionFontSize === 36
+                  ? 'bg-cyan-600 text-white border-cyan-400'
+                  : 'bg-slate-800 text-gray-300 border-slate-700 hover:border-slate-500'
+              }`}
+            >
+              36px (Normal)
+            </button>
+            <button
+              type="button"
+              onClick={() => setFontSizePreset(48)}
+              className={`py-1.5 px-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+                settings.questionFontSize === 48
+                  ? 'bg-cyan-600 text-white border-cyan-400'
+                  : 'bg-slate-800 text-gray-300 border-slate-700 hover:border-slate-500'
+              }`}
+            >
+              48px (Besar)
+            </button>
+            <button
+              type="button"
+              onClick={() => setFontSizePreset(56)}
+              className={`py-1.5 px-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+                settings.questionFontSize === 56
+                  ? 'bg-cyan-600 text-white border-cyan-400'
+                  : 'bg-slate-800 text-gray-300 border-slate-700 hover:border-slate-500'
+              }`}
+            >
+              56px (TV 75")
+            </button>
+            <button
+              type="button"
+              onClick={() => setFontSizePreset(68)}
+              className={`py-1.5 px-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+                settings.questionFontSize === 68
+                  ? 'bg-cyan-600 text-white border-cyan-400'
+                  : 'bg-slate-800 text-gray-300 border-slate-700 hover:border-slate-500'
+              }`}
+            >
+              68px (Jumbo)
             </button>
           </div>
 

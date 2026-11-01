@@ -29,6 +29,7 @@ export interface GameSettings {
   mirrorCamera: boolean;
   transparencyPercent: number; // default 20% (crystal clear), range 5 - 80%
   enableBlur: boolean; // default false (clear crystal)
+  largeScreenMode?: boolean; // Mode optimasi layar besar 75 inch / TV interaktif kelas
 }
 
 export type ScreenType = 'menu' | 'game' | 'editor' | 'settings' | 'help' | 'wheel';

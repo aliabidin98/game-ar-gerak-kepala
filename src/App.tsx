@@ -51,7 +51,8 @@ const DEFAULT_SETTINGS: GameSettings = {
   showLandmarks: false,
   mirrorCamera: true,
   transparencyPercent: 20, // default 20% (transparan bening), range 5 - 80%
-  enableBlur: false // default false (kaca bening tanpa blur)
+  enableBlur: false, // default false (kaca bening tanpa blur)
+  largeScreenMode: false // default false (mode layar normal)
 };
 
 export default function App() {

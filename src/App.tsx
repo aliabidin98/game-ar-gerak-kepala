@@ -13,6 +13,7 @@ import { SettingsScreen } from './components/SettingsScreen';
 import { HelpScreen } from './components/HelpScreen';
 import { WinnerModal } from './components/WinnerModal';
 import { ActivationModal } from './components/ActivationModal';
+import { RandomPickerScreen } from './components/RandomPickerScreen';
 import { soundManager } from './utils/audio';
 
 const STORAGE_KEY_QUESTIONS = 'edutilt_questions_v3';
@@ -210,6 +211,16 @@ export default function App() {
           }}
           onOpenHelp={() => setScreen('help')}
           onOpenActivation={() => setShowActivationModal(true)}
+          onOpenRandomPicker={() => setScreen('wheel')}
+        />
+      )}
+
+      {screen === 'wheel' && (
+        <RandomPickerScreen
+          soundEnabled={settings.soundEnabled}
+          onToggleSound={toggleSound}
+          onBack={() => setScreen('menu')}
+          onStartGame={handleStartGame}
         />
       )}
 

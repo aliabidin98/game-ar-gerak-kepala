@@ -125,6 +125,30 @@ class SoundManager {
     osc.stop(now + 0.04);
   }
 
+  public playWheelTick() {
+    if (!this.enabled) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    // Sharp wooden click for spinning wheel peg
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(950, now);
+    osc.frequency.exponentialRampToValueAtTime(350, now + 0.025);
+
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.03);
+  }
+
   public playVictoryFanfare() {
     if (!this.enabled) return;
     const ctx = this.getContext();

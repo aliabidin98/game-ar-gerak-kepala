@@ -12,7 +12,8 @@ import {
   KeyRound,
   ShieldCheck,
   Lock,
-  Instagram
+  Instagram,
+  Disc3
 } from 'lucide-react';
 import { soundManager } from '../utils/audio';
 
@@ -26,6 +27,7 @@ interface MenuScreenProps {
   onOpenSettings: () => void;
   onOpenHelp: () => void;
   onOpenActivation: () => void;
+  onOpenRandomPicker: () => void;
 }
 
 export const MenuScreen: React.FC<MenuScreenProps> = ({
@@ -37,7 +39,8 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
   onOpenQuestions,
   onOpenSettings,
   onOpenHelp,
-  onOpenActivation
+  onOpenActivation,
+  onOpenRandomPicker
 }) => {
   return (
     <div className="relative w-full max-w-lg glass-panel p-8 md:p-10 rounded-[2.5rem] flex flex-col items-center animate-pop border border-white/20 shadow-2xl">
@@ -141,6 +144,18 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({
             <span>2 Pemain (Split Screen)</span>
           </button>
         )}
+
+        {/* Pilih Nama Acak (Roda Putar) */}
+        <button
+          onClick={() => {
+            soundManager.playClick();
+            onOpenRandomPicker();
+          }}
+          className="w-full py-3.5 px-6 bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 hover:from-amber-500 hover:via-orange-500 hover:to-rose-500 rounded-2xl font-bold text-base md:text-lg transition-all shadow-[0_0_25px_rgba(245,158,11,0.35)] hover:scale-[1.02] flex items-center justify-center gap-3 text-white border border-amber-300/40 cursor-pointer group"
+        >
+          <Disc3 className="w-6 h-6 text-yellow-300 group-hover:rotate-180 transition-transform duration-500 shrink-0" />
+          <span>Pilih Nama Acak (Roda Putar)</span>
+        </button>
       </div>
 
       {/* Secondary Menu Buttons */}

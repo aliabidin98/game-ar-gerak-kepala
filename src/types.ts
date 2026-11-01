@@ -31,4 +31,4 @@ export interface GameSettings {
   enableBlur: boolean; // default false (clear crystal)
 }
 
-export type ScreenType = 'menu' | 'game' | 'editor' | 'settings' | 'help';
+export type ScreenType = 'menu' | 'game' | 'editor' | 'settings' | 'help' | 'wheel';

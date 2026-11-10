@@ -38,7 +38,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const adjustCameraZoom = (amount: number) => {
     soundManager.playClick();
     const current = settings.cameraZoom ?? 100;
-    const nextVal = Math.min(130, Math.max(70, current + amount));
+    const nextVal = Math.min(500, Math.max(50, current + amount));
     onUpdateSettings({ ...settings, cameraZoom: nextVal });
   };
 
@@ -248,62 +248,105 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </div>
         </div>
 
-        {/* ================= PENGATURAN KAMERA: ZOOM (KE LUAS) ================= */}
+        {/* ================= PENGATURAN KAMERA: ZOOM (50% HINGGA 500%) ================= */}
         <div className="bg-slate-900/85 p-5 md:p-6 rounded-2xl border border-cyan-500/40 shadow-inner">
           <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
             <label className="text-sm md:text-base font-bold text-gray-200 uppercase tracking-wider flex items-center gap-2">
               <Camera className="w-5 h-5 text-cyan-400" />
-              <span>Pengaturan Kamera: Zoom (ke Luas)</span>
+              <span>Pengaturan Zoom Kamera (Hingga 500%)</span>
             </label>
             <span className="text-xs text-cyan-300 font-mono font-bold bg-cyan-950/80 px-2.5 py-1 rounded-full border border-cyan-700/60 shadow">
               {(settings.cameraZoom ?? 100) < 100
                 ? `🔍 ${settings.cameraZoom}% (Luas / Wide)`
                 : (settings.cameraZoom ?? 100) === 100
-                ? `100% (Normal)`
-                : `🔍 ${settings.cameraZoom}% (Dekat)`}
+                ? `100% (Normal 1x)`
+                : `🔎 ${settings.cameraZoom}% (Zoom ${((settings.cameraZoom ?? 100) / 100).toFixed(1)}x)`}
             </span>
           </div>
 
           <p className="text-xs text-gray-300 mb-3.5 leading-relaxed">
-            Perluas sudut pandang kamera (*Zoom Out / Wide Angle*) agar kepala dan tubuh siswa leluasa tertangkap kamera tanpa terpotong di tepi layar, sangat ideal saat bermain 2 orang atau jarak dekat di depan TV/Smartboard.
+            Atur skala zoom kamera dari <strong>50% (Ultra Luas / Mundur)</strong> hingga <strong>500% (Super Zoom 5x)</strong>. Sangat fleksibel untuk menyesuaikan jarak siswa di kelas besar, TV 75 inch, maupun saat kamera webcam berada jauh dari siswa.
           </p>
+
+          {/* Range Slider Bar */}
+          <div className="mb-3.5 bg-slate-950/60 p-3 rounded-xl border border-slate-700/70">
+            <div className="flex justify-between text-[11px] text-gray-400 mb-2 font-mono">
+              <span>50% (Luas)</span>
+              <span className="text-cyan-400 font-bold">100% (Normal)</span>
+              <span>250% (2.5x)</span>
+              <span className="text-amber-400 font-bold">500% (Maksimal 5x)</span>
+            </div>
+            <input
+              type="range"
+              min="50"
+              max="500"
+              step="5"
+              value={settings.cameraZoom ?? 100}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                onUpdateSettings({ ...settings, cameraZoom: val });
+              }}
+              className="w-full h-2.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+              aria-label="Slider Zoom Kamera"
+            />
+          </div>
 
           {/* Stepper Buttons */}
           <div className="flex items-center justify-center bg-slate-800 rounded-xl overflow-hidden border border-slate-600 mb-3">
             <button
               type="button"
+              onClick={() => adjustCameraZoom(-25)}
+              className="px-3 py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 font-bold text-xs text-gray-300 transition-colors cursor-pointer border-r border-slate-600"
+              title="Kurangi Zoom 25%"
+            >
+              -25%
+            </button>
+            <button
+              type="button"
               onClick={() => adjustCameraZoom(-5)}
-              className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 font-bold text-xl text-white transition-colors w-16 cursor-pointer"
-              title="Perluas Sudut Pandang (Zoom Luas / Mundur)"
-              aria-label="Perluas Sudut Pandang"
+              className="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 font-bold text-lg text-white transition-colors cursor-pointer border-r border-slate-600"
+              title="Kurangi Zoom 5%"
+              aria-label="Kurangi Zoom"
             >
               -
             </button>
-            <div className="flex-1 text-center font-bold text-cyan-300 text-lg">
+            <div className="flex-1 text-center font-bold text-cyan-300 text-base md:text-lg">
               {settings.cameraZoom ?? 100}%
-              <span className="text-xs font-normal text-gray-400 ml-2">
+              <span className="text-xs font-normal text-gray-400 ml-1.5 hidden sm:inline">
                 {(settings.cameraZoom ?? 100) <= 75
-                  ? '(Ultra Luas / Sangat Wide)'
-                  : (settings.cameraZoom ?? 100) <= 90
+                  ? '(Ultra Luas)'
+                  : (settings.cameraZoom ?? 100) <= 95
                   ? '(Sudut Luas)'
                   : (settings.cameraZoom ?? 100) === 100
-                  ? '(Normal)'
-                  : '(Zoom Masuk)'}
+                  ? '(Normal 1x)'
+                  : (settings.cameraZoom ?? 100) <= 200
+                  ? `(Zoom ${((settings.cameraZoom ?? 100) / 100).toFixed(1)}x)`
+                  : (settings.cameraZoom ?? 100) < 500
+                  ? `(Super Zoom ${((settings.cameraZoom ?? 100) / 100).toFixed(1)}x)`
+                  : '(Maksimal 500% / 5x)'}
               </span>
             </div>
             <button
               type="button"
               onClick={() => adjustCameraZoom(5)}
-              className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 font-bold text-xl text-white transition-colors w-16 cursor-pointer"
-              title="Perbesar / Zoom Masuk"
-              aria-label="Perbesar"
+              className="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 font-bold text-lg text-white transition-colors cursor-pointer border-l border-slate-600"
+              title="Tambah Zoom 5%"
+              aria-label="Tambah Zoom"
             >
               +
             </button>
+            <button
+              type="button"
+              onClick={() => adjustCameraZoom(25)}
+              className="px-3 py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 font-bold text-xs text-gray-300 transition-colors cursor-pointer border-l border-slate-600"
+              title="Tambah Zoom 25%"
+            >
+              +25%
+            </button>
           </div>
 
-          {/* Quick Preset Buttons */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+          {/* Quick Preset Buttons (50% to 500%) */}
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
             <button
               type="button"
               onClick={() => setCameraZoomPreset(75)}
@@ -314,22 +357,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               }`}
             >
               <ZoomOut className="w-4 h-4 text-cyan-300" />
-              <span>Ultra Luas (75%)</span>
-              <span className="text-[10px] text-gray-400">2 Pemain / Dekat</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setCameraZoomPreset(85)}
-              className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
-                (settings.cameraZoom ?? 100) === 85
-                  ? 'bg-cyan-600/90 text-white border-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
-                  : 'bg-slate-800 text-gray-300 border-slate-700 hover:border-slate-500'
-              }`}
-            >
-              <Maximize2 className="w-4 h-4 text-sky-300" />
-              <span>Luas (85%)</span>
-              <span className="text-[10px] text-gray-400">Rekomendasi TV</span>
+              <span>75% (Luas)</span>
+              <span className="text-[10px] text-gray-400">Ultra Wide</span>
             </button>
 
             <button
@@ -342,22 +371,64 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               }`}
             >
               <Camera className="w-4 h-4 text-emerald-300" />
-              <span>Normal (100%)</span>
-              <span className="text-[10px] text-gray-400">Standar Bawaan</span>
+              <span>100% (1x)</span>
+              <span className="text-[10px] text-gray-400">Standar</span>
             </button>
 
             <button
               type="button"
-              onClick={() => setCameraZoomPreset(115)}
+              onClick={() => setCameraZoomPreset(150)}
               className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
-                (settings.cameraZoom ?? 100) === 115
+                (settings.cameraZoom ?? 100) === 150
                   ? 'bg-cyan-600/90 text-white border-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
                   : 'bg-slate-800 text-gray-300 border-slate-700 hover:border-slate-500'
               }`}
             >
-              <ZoomIn className="w-4 h-4 text-amber-300" />
-              <span>Dekat (115%)</span>
+              <ZoomIn className="w-4 h-4 text-sky-300" />
+              <span>150% (1.5x)</span>
               <span className="text-[10px] text-gray-400">Fokus Wajah</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCameraZoomPreset(200)}
+              className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
+                (settings.cameraZoom ?? 100) === 200
+                  ? 'bg-cyan-600/90 text-white border-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+                  : 'bg-slate-800 text-gray-300 border-slate-700 hover:border-slate-500'
+              }`}
+            >
+              <ZoomIn className="w-4 h-4 text-yellow-300" />
+              <span>200% (2x)</span>
+              <span className="text-[10px] text-gray-400">Jarak Sedang</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCameraZoomPreset(300)}
+              className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
+                (settings.cameraZoom ?? 100) === 300
+                  ? 'bg-cyan-600/90 text-white border-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+                  : 'bg-slate-800 text-gray-300 border-slate-700 hover:border-slate-500'
+              }`}
+            >
+              <ZoomIn className="w-4 h-4 text-orange-300" />
+              <span>300% (3x)</span>
+              <span className="text-[10px] text-gray-400">Jarak Jauh</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCameraZoomPreset(500)}
+              className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
+                (settings.cameraZoom ?? 100) === 500
+                  ? 'bg-amber-600/90 text-white border-amber-300 shadow-[0_0_14px_rgba(245,158,11,0.5)]'
+                  : 'bg-slate-800 text-gray-300 border-slate-700 hover:border-slate-500'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 text-amber-300" />
+              <span className="text-amber-200">500% (5x)</span>
+              <span className="text-[10px] text-amber-300/80 font-bold">Maksimal</span>
             </button>
           </div>
 

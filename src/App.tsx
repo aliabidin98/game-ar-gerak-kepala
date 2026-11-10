@@ -53,7 +53,7 @@ const DEFAULT_SETTINGS: GameSettings = {
   transparencyPercent: 20, // default 20% (transparan bening), range 5 - 80%
   enableBlur: false, // default false (kaca bening tanpa blur)
   largeScreenMode: false, // default false (mode layar normal)
-  cameraZoom: 100, // default 100% (bisa diatur ke luas 70% - 90%)
+  cameraZoom: 100, // default 100% (bisa diatur dari 50% hingga 500%)
   cameraFit: 'cover' // 'cover' (penuh) atau 'contain' (luas utuh)
 };
 

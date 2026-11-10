@@ -525,11 +525,16 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     soundManager.playClick();
     if (!onUpdateSettings) return;
     const current = settings.cameraZoom ?? 100;
-    // Siklus zoom: 100% -> 85% (Luas) -> 75% (Ultra Luas) -> 115% (Dekat) -> 100%
+    // Siklus zoom: 100% -> 150% -> 200% -> 300% -> 500% (Maksimal) -> 75% (Ultra Luas) -> 85% (Luas) -> 100%
     let next = 100;
-    if (current === 100) next = 85;
-    else if (current === 85) next = 75;
-    else if (current === 75) next = 115;
+    if (current === 100) next = 150;
+    else if (current === 150) next = 200;
+    else if (current === 200) next = 300;
+    else if (current === 300) next = 500;
+    else if (current >= 500) next = 75;
+    else if (current === 75) next = 85;
+    else if (current === 85) next = 100;
+    else if (current < 100) next = 100;
     else next = 100;
     onUpdateSettings({ ...settings, cameraZoom: next });
   };
@@ -653,17 +658,21 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               className={`rounded-xl bg-slate-800/80 hover:bg-slate-700 text-cyan-300 border border-slate-700 cursor-pointer flex items-center gap-1.5 transition-all hover:scale-105 shadow ${
                 isLargeScreen ? 'p-3 text-sm' : 'p-2.5 text-xs'
               }`}
-              title="Atur Zoom Kamera (Klik untuk ganti: Luas 85% / Ultra Luas 75% / Dekat 115% / Normal 100%)"
+              title={`Atur Zoom Kamera (Saat ini: ${settings.cameraZoom ?? 100}%. Klik untuk mengganti: 100% / 150% / 200% / 300% / 500% / 75% / 85%)`}
             >
               {(settings.cameraZoom ?? 100) < 100 ? (
                 <ZoomOut className={isLargeScreen ? 'w-5 h-5 text-cyan-400' : 'w-4 h-4 text-cyan-400'} />
+              ) : (settings.cameraZoom ?? 100) > 100 ? (
+                <ZoomIn className={isLargeScreen ? 'w-5 h-5 text-amber-400' : 'w-4 h-4 text-amber-400'} />
               ) : (
                 <Camera className={isLargeScreen ? 'w-5 h-5 text-cyan-400' : 'w-4 h-4 text-cyan-400'} />
               )}
               <span className="hidden sm:inline font-bold">
                 {(settings.cameraZoom ?? 100) === 100
                   ? 'Zoom: 100%'
-                  : `${settings.cameraZoom}% (Luas)`}
+                  : (settings.cameraZoom ?? 100) < 100
+                  ? `${settings.cameraZoom}% (Luas)`
+                  : `Zoom: ${settings.cameraZoom}%`}
               </span>
             </button>
           )}

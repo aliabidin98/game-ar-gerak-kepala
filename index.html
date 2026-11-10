@@ -57,8 +57,19 @@
         }
       }, true);
 
-      // Normalisasi trailing slash untuk GitHub Pages agar path relatif tidak 404
-      if (location.hostname.includes('github.io') && location.pathname && !location.pathname.endsWith('/') && !location.pathname.split('/').pop().includes('.')) {
+      // Jika diakses di GitHub Pages dan berkas yang dimuat adalah index.html mentah (bukan hasil build),
+      // otomatis arahkan browser ke folder /docs/ yang berisi aplikasi terkompilasi siap pakai.
+      if (location.hostname.includes('github.io') && !location.pathname.includes('/docs')) {
+        setTimeout(function() {
+          var isRaw = document.querySelector('script[src*="main.tsx"]');
+          if (isRaw) {
+            var cleanPath = location.pathname.replace(/\/index\.html$/, '').replace(/\/+$/, '');
+            var docsUrl = cleanPath + '/docs/' + location.search + location.hash;
+            console.log('Mengarahkan ke folder /docs/...');
+            location.replace(docsUrl);
+          }
+        }, 100);
+      } else if (location.hostname.includes('github.io') && location.pathname && !location.pathname.endsWith('/') && !location.pathname.split('/').pop().includes('.')) {
         location.replace(location.pathname + '/' + location.search + location.hash);
       }
     </script>

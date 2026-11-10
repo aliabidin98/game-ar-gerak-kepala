@@ -85,9 +85,30 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     p2Ref.current = p2;
   }, [p2]);
 
-  // Pick random question avoiding duplicates when possible
-  const getRandomQuestion = useCallback(
-    (currentId?: number | string): Question => {
+  // Shuffle helper function (Fisher-Yates)
+  const shuffleQuestions = useCallback((arr: Question[]): Question[] => {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }, []);
+
+  // Deck of unasked questions to guarantee zero duplicate questions
+  const unusedDeckRef = useRef<Question[]>([]);
+  // Set of questions answered in the current session
+  const answeredIdsRef = useRef<Set<string | number>>(new Set());
+
+  // Initialize deck with full shuffled questions
+  const initDeck = useCallback(() => {
+    unusedDeckRef.current = shuffleQuestions(questions);
+    answeredIdsRef.current = new Set();
+  }, [questions, shuffleQuestions]);
+
+  // Pull next unique question that has not yet appeared
+  const getNextUniqueQuestion = useCallback(
+    (playerIndex: 1 | 2): Question | null => {
       if (questions.length === 0) {
         return {
           id: 0,
@@ -97,53 +118,65 @@ export const GameScreen: React.FC<GameScreenProps> = ({
           a: 'kiri'
         };
       }
-      if (questions.length === 1) return questions[0];
-      const available = questions.filter((q) => q.id !== currentId);
-      const pool = available.length > 0 ? available : questions;
-      return pool[Math.floor(Math.random() * pool.length)];
+
+      // In 2P mode, avoid question currently displayed by the other player
+      const otherQId = playerIndex === 1 ? p2Ref.current.currentQ?.id : p1Ref.current.currentQ?.id;
+
+      // Find first unused question that is not on the other screen
+      let targetIdx = unusedDeckRef.current.findIndex((q) => q.id !== otherQId);
+
+      // If unused deck has run out of questions:
+      if (targetIdx === -1 && unusedDeckRef.current.length === 0) {
+        // All questions in the bank have appeared!
+        // If target score requires continuing, reshuffle all questions avoiding current on-screen questions
+        const currentP1Id = p1Ref.current.currentQ?.id;
+        const currentP2Id = p2Ref.current.currentQ?.id;
+        const freshDeck = shuffleQuestions(questions).filter(
+          (q) => q.id !== otherQId && q.id !== currentP1Id && q.id !== currentP2Id
+        );
+        unusedDeckRef.current = freshDeck.length > 0 ? freshDeck : shuffleQuestions(questions);
+        targetIdx = unusedDeckRef.current.findIndex((q) => q.id !== otherQId);
+      }
+
+      if (targetIdx !== -1) {
+        const [picked] = unusedDeckRef.current.splice(targetIdx, 1);
+        return picked;
+      }
+
+      return questions[0] || null;
     },
-    [questions]
+    [questions, shuffleQuestions]
   );
 
-  // Load question for player
+  // Load question for player without duplicates
   const loadQuestionForPlayer = useCallback(
     (playerIndex: 1 | 2) => {
       if (!gameActiveRef.current) return;
 
-      if (playerIndex === 1) {
-        const nextQ = getRandomQuestion(p1Ref.current.currentQ?.id);
-        setP1((prev) => ({
-          ...prev,
-          currentQ: nextQ,
-          tiltProgress: 0,
-          tiltFrames: 0,
-          tiltDirection: null,
-          isAnswering: false,
-          feedback: null,
-          feedbackText: '',
-          currentAngle: 0
-        }));
-      } else {
-        const nextQ = getRandomQuestion(p2Ref.current.currentQ?.id);
-        setP2((prev) => ({
-          ...prev,
-          currentQ: nextQ,
-          tiltProgress: 0,
-          tiltFrames: 0,
-          tiltDirection: null,
-          isAnswering: false,
-          feedback: null,
-          feedbackText: '',
-          currentAngle: 0
-        }));
-      }
+      const nextQ = getNextUniqueQuestion(playerIndex);
+      if (!nextQ) return;
+
+      const setPlayer = playerIndex === 1 ? setP1 : setP2;
+      setPlayer((prev) => ({
+        ...prev,
+        currentQ: nextQ,
+        questionNumber: (prev.questionNumber || 0) + 1,
+        tiltProgress: 0,
+        tiltFrames: 0,
+        tiltDirection: null,
+        isAnswering: false,
+        feedback: null,
+        feedbackText: '',
+        currentAngle: 0
+      }));
     },
-    [getRandomQuestion]
+    [getNextUniqueQuestion]
   );
 
   // Initialize questions on mount
   useEffect(() => {
     gameActiveRef.current = true;
+    initDeck();
     loadQuestionForPlayer(1);
     if (gameMode === 2) {
       loadQuestionForPlayer(2);
@@ -151,13 +184,17 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     return () => {
       gameActiveRef.current = false;
     };
-  }, [gameMode, loadQuestionForPlayer]);
+  }, [gameMode, initDeck, loadQuestionForPlayer]);
 
   // Handle Answer
   const handleAnswerSubmit = useCallback(
     (playerIndex: 1 | 2, answer: 'kiri' | 'kanan') => {
       const player = playerIndex === 1 ? p1Ref.current : p2Ref.current;
       if (!player.currentQ || player.isAnswering || !gameActiveRef.current) return;
+
+      if (player.currentQ.id) {
+        answeredIdsRef.current.add(player.currentQ.id);
+      }
 
       const isCorrect = player.currentQ.a === answer;
       const nextScore = isCorrect ? player.score + 10 : player.score;
@@ -182,11 +219,27 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         setP2(updateState);
       }
 
-      // Check win condition
-      if (nextScore >= settings.targetScore) {
+      // Win condition:
+      // 1. Score reaches target score
+      // 2. Or all questions in the bank have been answered without any duplicates left
+      const isTargetScoreReached = nextScore >= settings.targetScore;
+      const allUniqueQuestionsAnswered =
+        questions.length > 0 &&
+        unusedDeckRef.current.length === 0 &&
+        answeredIdsRef.current.size >= questions.length;
+
+      if (isTargetScoreReached || allUniqueQuestionsAnswered) {
         setTimeout(() => {
           if (gameActiveRef.current) {
-            onWin(playerIndex, nextScore);
+            if (gameMode === 2) {
+              const p1Score = playerIndex === 1 ? nextScore : p1Ref.current.score;
+              const p2Score = playerIndex === 2 ? nextScore : p2Ref.current.score;
+              const winner = p1Score >= p2Score ? 1 : 2;
+              const finalScore = Math.max(p1Score, p2Score);
+              onWin(winner, finalScore);
+            } else {
+              onWin(playerIndex, nextScore);
+            }
           }
         }, 700);
         return;
@@ -199,7 +252,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         }
       }, 1200);
     },
-    [settings.targetScore, onWin, loadQuestionForPlayer]
+    [settings.targetScore, questions.length, gameMode, onWin, loadQuestionForPlayer]
   );
 
   // Process head tilt calculation for single face
@@ -537,6 +590,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 <span className="text-yellow-400">Skor:</span>
                 <span className="text-white font-extrabold">{p1.score}</span>
                 <span className="text-gray-400 text-sm md:text-base font-normal">/ {settings.targetScore}</span>
+                {questions.length > 0 && (
+                  <span className="text-[11px] md:text-xs text-cyan-300 font-bold bg-cyan-950/80 border border-cyan-500/40 px-2.5 py-0.5 rounded-full ml-1 hidden sm:inline-block shadow">
+                    Soal {Math.min(p1.questionNumber || 1, questions.length)}/{questions.length}
+                  </span>
+                )}
               </>
             ) : (
               <>
@@ -656,10 +714,15 @@ export const GameScreen: React.FC<GameScreenProps> = ({
           >
             {/* Player Badge & Tilt Angle HUD */}
             <div className={`flex items-center justify-between ${isLargeScreen ? 'mb-5' : 'mb-4'}`}>
-              <span className={`rounded-full font-bold uppercase tracking-wider bg-blue-600/40 border border-blue-400 text-blue-200 shadow-[0_0_15px_rgba(96,165,250,0.3)] ${
+              <span className={`rounded-full font-bold uppercase tracking-wider bg-blue-600/40 border border-blue-400 text-blue-200 shadow-[0_0_15px_rgba(96,165,250,0.3)] flex items-center gap-1.5 ${
                 isLargeScreen ? 'px-5 py-1.5 text-sm md:text-base' : 'px-4 py-1 text-xs md:text-sm'
               }`}>
-                Pemain 1
+                <span>Pemain 1</span>
+                {p1.questionNumber ? (
+                  <span className="text-cyan-300 font-mono font-bold">
+                    #{p1.questionNumber}
+                  </span>
+                ) : null}
               </span>
 
               {/* Head Tilt Angle Badge */}
@@ -680,16 +743,34 @@ export const GameScreen: React.FC<GameScreenProps> = ({
             {/* Question Card */}
             <div
               style={questionBoxStyle}
-              className={`glass-box rounded-3xl mb-5 flex items-center justify-center text-center relative overflow-hidden border border-white/20 transition-all ${
+              className={`glass-box rounded-3xl mb-5 flex flex-col items-center justify-center text-center relative overflow-hidden border border-white/20 transition-all ${
                 isLargeScreen
-                  ? 'p-6 md:p-10 min-h-[160px] md:min-h-[200px]'
-                  : 'p-5 md:p-8 min-h-[140px] md:min-h-[160px]'
+                  ? 'p-5 md:p-8 min-h-[170px] md:min-h-[220px]'
+                  : 'p-4 md:p-6 min-h-[140px] md:min-h-[170px]'
               }`}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-transparent pointer-events-none" />
+
+              {/* Question Image if present */}
+              {p1.currentQ?.image && (
+                <div className={`relative z-10 mb-2.5 flex items-center justify-center max-w-full ${
+                  isLargeScreen ? 'max-h-48 md:max-h-60' : 'max-h-32 md:max-h-44'
+                }`}>
+                  <img
+                    src={p1.currentQ.image}
+                    alt="Gambar Soal"
+                    className="max-h-full max-w-full object-contain rounded-2xl border border-white/30 shadow-xl bg-slate-950/60 p-1"
+                  />
+                </div>
+              )}
+
               <h2
                 className="font-bold text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] leading-tight relative z-10 transition-all select-none"
-                style={{ fontSize: `${settings.questionFontSize}px` }}
+                style={{
+                  fontSize: p1.currentQ?.image
+                    ? `${Math.max(18, Math.round(settings.questionFontSize * 0.85))}px`
+                    : `${settings.questionFontSize}px`
+                }}
               >
                 {p1.currentQ?.q || 'Memuat soal...'}
               </h2>
@@ -844,10 +925,15 @@ export const GameScreen: React.FC<GameScreenProps> = ({
             >
               {/* Player Badge & Tilt Angle HUD */}
               <div className={`flex items-center justify-between ${isLargeScreen ? 'mb-5' : 'mb-4'}`}>
-                <span className={`rounded-full font-bold uppercase tracking-wider bg-emerald-600/40 border border-emerald-400 text-emerald-200 shadow-[0_0_15px_rgba(52,211,153,0.3)] ${
+                <span className={`rounded-full font-bold uppercase tracking-wider bg-emerald-600/40 border border-emerald-400 text-emerald-200 shadow-[0_0_15px_rgba(52,211,153,0.3)] flex items-center gap-1.5 ${
                   isLargeScreen ? 'px-5 py-1.5 text-sm md:text-base' : 'px-4 py-1 text-xs md:text-sm'
                 }`}>
-                  Pemain 2
+                  <span>Pemain 2</span>
+                  {p2.questionNumber ? (
+                    <span className="text-emerald-300 font-mono font-bold">
+                      #{p2.questionNumber}
+                    </span>
+                  ) : null}
                 </span>
 
                 {/* Head Tilt Angle Badge */}
@@ -868,16 +954,34 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               {/* Question Card */}
               <div
                 style={questionBoxStyle}
-                className={`glass-box rounded-3xl mb-5 flex items-center justify-center text-center relative overflow-hidden border border-white/20 transition-all ${
+                className={`glass-box rounded-3xl mb-5 flex flex-col items-center justify-center text-center relative overflow-hidden border border-white/20 transition-all ${
                   isLargeScreen
-                    ? 'p-5 md:p-8 min-h-[160px] md:min-h-[190px]'
-                    : 'p-5 md:p-8 min-h-[140px] md:min-h-[160px]'
+                    ? 'p-5 md:p-8 min-h-[170px] md:min-h-[220px]'
+                    : 'p-4 md:p-6 min-h-[140px] md:min-h-[170px]'
                 }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-bl from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
+
+                {/* Question Image if present */}
+                {p2.currentQ?.image && (
+                  <div className={`relative z-10 mb-2.5 flex items-center justify-center max-w-full ${
+                    isLargeScreen ? 'max-h-44 md:max-h-56' : 'max-h-28 md:max-h-40'
+                  }`}>
+                    <img
+                      src={p2.currentQ.image}
+                      alt="Gambar Soal"
+                      className="max-h-full max-w-full object-contain rounded-2xl border border-white/30 shadow-xl bg-slate-950/60 p-1"
+                    />
+                  </div>
+                )}
+
                 <h2
                   className="font-bold text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] leading-tight relative z-10 transition-all select-none"
-                  style={{ fontSize: `${settings.questionFontSize}px` }}
+                  style={{
+                    fontSize: p2.currentQ?.image
+                      ? `${Math.max(18, Math.round(settings.questionFontSize * 0.82))}px`
+                      : `${settings.questionFontSize}px`
+                  }}
                 >
                   {p2.currentQ?.q || 'Memuat soal...'}
                 </h2>

@@ -5,11 +5,13 @@ export interface Question {
   r: string;
   a: 'kiri' | 'kanan';
   category?: string;
+  image?: string; // URL atau base64 gambar pendukung soal
 }
 
 export interface PlayerState {
   score: number;
   currentQ: Question | null;
+  questionNumber?: number;
   tiltProgress: number; // 0 to 100 percentage
   tiltFrames: number;
   tiltDirection: 'kiri' | 'kanan' | null;

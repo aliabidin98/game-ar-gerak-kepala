@@ -2,17 +2,17 @@ import * as XLSX from 'xlsx';
 import { Question } from '../types';
 
 export const TEMPLATE_QUESTIONS = [
-  { Soal: 'Apa nama ibukota negara Indonesia?', OpsiKiri: 'Bandung', OpsiKanan: 'Jakarta', Jawaban: 'kanan' },
-  { Soal: 'Berapa hasil dari 7 x 8?', OpsiKiri: '56', OpsiKanan: '54', Jawaban: 'kiri' },
-  { Soal: 'Hewan mamalia yang bisa terbang?', OpsiKiri: 'Kelelawar', OpsiKanan: 'Burung Hantu', Jawaban: 'kiri' },
-  { Soal: 'Planet terdekat dari matahari?', OpsiKiri: 'Mars', OpsiKanan: 'Merkurius', Jawaban: 'kanan' },
-  { Soal: 'Siapa penemu bola lampu pijar?', OpsiKiri: 'Thomas A. Edison', OpsiKanan: 'Nikola Tesla', Jawaban: 'kiri' }
+  { Soal: 'Apa nama ibukota negara Indonesia?', OpsiKiri: 'Bandung', OpsiKanan: 'Jakarta', Jawaban: 'kanan', Gambar: '' },
+  { Soal: 'Berapa hasil dari 7 x 8?', OpsiKiri: '56', OpsiKanan: '54', Jawaban: 'kiri', Gambar: '' },
+  { Soal: 'Hewan mamalia yang bisa terbang?', OpsiKiri: 'Kelelawar', OpsiKanan: 'Burung Hantu', Jawaban: 'kiri', Gambar: '' },
+  { Soal: 'Planet terdekat dari matahari?', OpsiKiri: 'Mars', OpsiKanan: 'Merkurius', Jawaban: 'kanan', Gambar: '' },
+  { Soal: 'Siapa penemu bola lampu pijar?', OpsiKiri: 'Thomas A. Edison', OpsiKanan: 'Nikola Tesla', Jawaban: 'kiri', Gambar: '' }
 ];
 
 export function downloadExcelTemplate(): boolean {
   try {
     const ws = XLSX.utils.json_to_sheet(TEMPLATE_QUESTIONS);
-    ws['!cols'] = [{ wch: 40 }, { wch: 20 }, { wch: 20 }, { wch: 15 }];
+    ws['!cols'] = [{ wch: 40 }, { wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 30 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Template Soal');
     XLSX.writeFile(wb, 'Template_Soal_EduTilt.xlsx');
@@ -24,9 +24,9 @@ export function downloadExcelTemplate(): boolean {
 }
 
 export function downloadCsvTemplate(): void {
-  const header = 'Soal,OpsiKiri,OpsiKanan,Jawaban\n';
+  const header = 'Soal,OpsiKiri,OpsiKanan,Jawaban,Gambar\n';
   const rows = TEMPLATE_QUESTIONS.map(
-    q => `"${q.Soal.replace(/"/g, '""')}","${q.OpsiKiri.replace(/"/g, '""')}","${q.OpsiKanan.replace(/"/g, '""')}",${q.Jawaban}`
+    q => `"${q.Soal.replace(/"/g, '""')}","${q.OpsiKiri.replace(/"/g, '""')}","${q.OpsiKanan.replace(/"/g, '""')}",${q.Jawaban},"${q.Gambar || ''}"`
   ).join('\n');
   const csvContent = '\uFEFF' + header + rows;
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -47,10 +47,11 @@ export function exportQuestionsToExcel(questions: Question[]): boolean {
       OpsiKiri: q.l,
       OpsiKanan: q.r,
       Jawaban: q.a,
-      Kategori: q.category || 'Umum'
+      Kategori: q.category || 'Umum',
+      Gambar: q.image || ''
     }));
     const ws = XLSX.utils.json_to_sheet(exportData);
-    ws['!cols'] = [{ wch: 45 }, { wch: 22 }, { wch: 22 }, { wch: 14 }, { wch: 16 }];
+    ws['!cols'] = [{ wch: 45 }, { wch: 22 }, { wch: 22 }, { wch: 14 }, { wch: 16 }, { wch: 35 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Bank Soal');
     XLSX.writeFile(wb, `Bank_Soal_EduTilt_${new Date().toISOString().slice(0, 10)}.xlsx`);
@@ -95,6 +96,7 @@ export async function parseQuestionsFromFile(file: File): Promise<{
           let rightText = '';
           let ansText = '';
           let catText = 'Umum';
+          let imgText = '';
 
           Object.keys(row).forEach((k) => {
             const cleanKey = k.toLowerCase().replace(/[\s_-]/g, '');
@@ -110,6 +112,8 @@ export async function parseQuestionsFromFile(file: File): Promise<{
               ansText = val.toLowerCase();
             } else if (cleanKey === 'kategori' || cleanKey === 'category' || cleanKey === 'mapel') {
               catText = val;
+            } else if (cleanKey === 'gambar' || cleanKey === 'image' || cleanKey === 'foto' || cleanKey === 'urlgambar' || cleanKey === 'linkgambar') {
+              imgText = val;
             }
           });
 
@@ -122,7 +126,8 @@ export async function parseQuestionsFromFile(file: File): Promise<{
               l: leftText,
               r: rightText,
               a: normalizedAns,
-              category: catText || 'Umum'
+              category: catText || 'Umum',
+              ...(imgText ? { image: imgText } : {})
             });
           }
         });

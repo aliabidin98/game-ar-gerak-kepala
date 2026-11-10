@@ -98,13 +98,13 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
 
         <p className="text-gray-300 text-lg mb-6">
           {gameMode === 1
-            ? 'Selamat! Kamu telah mencapai skor target dengan gerakan kepala yang tepat!'
+            ? 'Selamat! Kamu telah menyelesaikan sesi kuis edukasi dengan gerakan kepala yang tepat!'
             : `Pertarungan sengit! Pemain ${winner} berhasil mengungguli lawan dengan refleks kepala yang mantap!`}
         </p>
 
         {/* Score Badge */}
         <div className="inline-flex items-center gap-3 px-6 py-3 mb-8 bg-slate-900/80 border border-yellow-500/40 rounded-2xl shadow-inner">
-          <span className="text-gray-400 text-sm font-bold uppercase tracking-wider">Skor Kemenangan</span>
+          <span className="text-gray-400 text-sm font-bold uppercase tracking-wider">Skor Akhir</span>
           <span className="text-3xl font-heading text-yellow-400">{score} Poin</span>
         </div>
 

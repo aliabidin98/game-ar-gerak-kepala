@@ -143,7 +143,8 @@ export default function App() {
       l: q.l,
       r: q.r,
       a: q.a,
-      category: q.category || 'Umum'
+      category: q.category || 'Umum',
+      ...(q.image ? { image: q.image } : {})
     }));
     setQuestions(freshDefaults);
     safeSetItem(STORAGE_KEY_QUESTIONS, JSON.stringify(freshDefaults));

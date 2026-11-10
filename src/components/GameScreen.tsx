@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Question, PlayerState, GameSettings } from '../types';
 import { soundManager } from '../utils/audio';
+import { ensureMediaPipeLoaded } from '../utils/mediapipe';
 
 // Landmark indexes from MediaPipe FaceMesh
 const NOSE_TIP = 1;
@@ -343,16 +344,19 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         const video = videoRef.current;
         if (!video) return;
 
-        // Check if MediaPipe FaceMesh is in global scope
+        // Pastikan modul MediaPipe termuat dari CDN (dengan fallback otomatis)
+        const isLoaded = await ensureMediaPipeLoaded();
+        if (!isLoaded) {
+          throw new Error('Gagal memuat modul kamera MediaPipe dari internet.');
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const FaceMeshClass = (window as any).FaceMesh;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const CameraClass = (window as any).Camera;
 
         if (!FaceMeshClass || !CameraClass) {
-          console.warn('MediaPipe library is still loading from CDN, will retry in 1s...');
-          setTimeout(setupAI, 1000);
-          return;
+          throw new Error('Library MediaPipe tidak tersedia di browser.');
         }
 
         const faceMesh = new FaceMeshClass({

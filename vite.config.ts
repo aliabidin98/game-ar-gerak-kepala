@@ -4,9 +4,13 @@ import path from 'path';
 import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
-  // Base path relatif './' agar 100% kompatibel di GitHub Pages (apapun nama repositorinya),
-  // custom domain, maupun subfolder tanpa menyebabkan blank putih karena salah path assets.
-  const base = process.env.VITE_BASE || './';
+  // Otomatis deteksi base path:
+  // 1. Jika VITE_BASE ditentukan (dari workflow GitHub Pages): gunakan itu
+  // 2. Jika di GitHub Actions dan ada GITHUB_REPOSITORY (owner/repo): gunakan /repo/
+  // 3. Fallback: './'
+  const isGithubActions = process.env.GITHUB_ACTIONS === 'true';
+  const repoName = process.env.GITHUB_REPOSITORY ? `/${process.env.GITHUB_REPOSITORY.split('/')[1]}/` : './';
+  const base = process.env.VITE_BASE || (isGithubActions ? repoName : './');
 
   return {
     base,

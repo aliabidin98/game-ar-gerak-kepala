@@ -32,6 +32,8 @@ export interface GameSettings {
   transparencyPercent: number; // default 20% (crystal clear), range 5 - 80%
   enableBlur: boolean; // default false (clear crystal)
   largeScreenMode?: boolean; // Mode optimasi layar besar 75 inch / TV interaktif kelas
+  cameraZoom?: number; // Persentase zoom kamera: 70% (Ultra Luas) - 130% (Dekat), default 100%
+  cameraFit?: 'cover' | 'contain'; // 'cover' (penuh layar) atau 'contain' (luas utuh tanpa terpotong)
 }
 
 export type ScreenType = 'menu' | 'game' | 'editor' | 'settings' | 'help' | 'wheel';

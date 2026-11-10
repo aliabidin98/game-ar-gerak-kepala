@@ -52,7 +52,9 @@ const DEFAULT_SETTINGS: GameSettings = {
   mirrorCamera: true,
   transparencyPercent: 20, // default 20% (transparan bening), range 5 - 80%
   enableBlur: false, // default false (kaca bening tanpa blur)
-  largeScreenMode: false // default false (mode layar normal)
+  largeScreenMode: false, // default false (mode layar normal)
+  cameraZoom: 100, // default 100% (bisa diatur ke luas 70% - 90%)
+  cameraFit: 'cover' // 'cover' (penuh) atau 'contain' (luas utuh)
 };
 
 export default function App() {
@@ -259,6 +261,7 @@ export default function App() {
           onEndGame={() => setScreen('menu')}
           onWin={handleGameWin}
           onToggleSound={toggleSound}
+          onUpdateSettings={handleUpdateSettings}
         />
       )}
 

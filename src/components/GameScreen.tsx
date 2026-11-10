@@ -12,7 +12,9 @@ import {
   Eye,
   EyeOff,
   Maximize,
-  Tv
+  Tv,
+  ZoomOut,
+  ZoomIn
 } from 'lucide-react';
 import { Question, PlayerState, GameSettings } from '../types';
 import { soundManager } from '../utils/audio';
@@ -29,6 +31,7 @@ interface GameScreenProps {
   onEndGame: () => void;
   onWin: (winner: 1 | 2, finalScore: number) => void;
   onToggleSound: () => void;
+  onUpdateSettings?: (newSettings: GameSettings) => void;
 }
 
 export const GameScreen: React.FC<GameScreenProps> = ({
@@ -37,7 +40,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   settings,
   onEndGame,
   onWin,
-  onToggleSound
+  onToggleSound,
+  onUpdateSettings
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -513,6 +517,25 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     }
   };
 
+  const cycleCameraZoom = () => {
+    soundManager.playClick();
+    if (!onUpdateSettings) return;
+    const current = settings.cameraZoom ?? 100;
+    // Siklus zoom: 100% -> 85% (Luas) -> 75% (Ultra Luas) -> 115% (Dekat) -> 100%
+    let next = 100;
+    if (current === 100) next = 85;
+    else if (current === 85) next = 75;
+    else if (current === 75) next = 115;
+    else next = 100;
+    onUpdateSettings({ ...settings, cameraZoom: next });
+  };
+
+  // Camera Zoom & Transform calculations
+  const zoomFactor = (settings.cameraZoom ?? 100) / 100;
+  const mirrorX = settings.mirrorCamera ? -1 : 1;
+  const cameraTransform = `scale(${mirrorX * zoomFactor}, ${zoomFactor})`;
+  const cameraFitClass = settings.cameraFit === 'contain' ? 'object-contain' : 'object-cover';
+
   // Dynamic Crystal Clear Transparency Styles
   const panelOpacity = Math.max(0.06, Math.min(0.85, (settings.transparencyPercent ?? 20) / 100));
   const boxOpacity = Math.max(0.04, Math.min(0.85, (settings.transparencyPercent ?? 20) / 100));
@@ -549,17 +572,19 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   return (
     <div className="fixed inset-0 w-full h-full overflow-hidden bg-slate-950 flex flex-col">
       {/* Background Webcam Feed */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-85">
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-85 flex items-center justify-center bg-black">
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
-          className={`w-full h-full object-cover ${settings.mirrorCamera ? 'scale-x-[-1]' : ''}`}
+          style={{ transform: cameraTransform, transformOrigin: 'center center' }}
+          className={`w-full h-full ${cameraFitClass} transition-transform duration-300`}
         />
         <canvas
           ref={canvasRef}
-          className={`absolute inset-0 w-full h-full pointer-events-none ${settings.mirrorCamera ? 'scale-x-[-1]' : ''}`}
+          style={{ transform: cameraTransform, transformOrigin: 'center center' }}
+          className={`absolute inset-0 w-full h-full pointer-events-none ${cameraFitClass} transition-transform duration-300`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/70" />
       </div>
@@ -617,6 +642,28 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
         {/* Right utility buttons */}
         <div className="flex items-center gap-2">
+          {/* Quick Camera Zoom Button */}
+          {onUpdateSettings && (
+            <button
+              onClick={cycleCameraZoom}
+              className={`rounded-xl bg-slate-800/80 hover:bg-slate-700 text-cyan-300 border border-slate-700 cursor-pointer flex items-center gap-1.5 transition-all hover:scale-105 shadow ${
+                isLargeScreen ? 'p-3 text-sm' : 'p-2.5 text-xs'
+              }`}
+              title="Atur Zoom Kamera (Klik untuk ganti: Luas 85% / Ultra Luas 75% / Dekat 115% / Normal 100%)"
+            >
+              {(settings.cameraZoom ?? 100) < 100 ? (
+                <ZoomOut className={isLargeScreen ? 'w-5 h-5 text-cyan-400' : 'w-4 h-4 text-cyan-400'} />
+              ) : (
+                <Camera className={isLargeScreen ? 'w-5 h-5 text-cyan-400' : 'w-4 h-4 text-cyan-400'} />
+              )}
+              <span className="hidden sm:inline font-bold">
+                {(settings.cameraZoom ?? 100) === 100
+                  ? 'Zoom: 100%'
+                  : `${settings.cameraZoom}% (Luas)`}
+              </span>
+            </button>
+          )}
+
           {/* Fullscreen Button */}
           <button
             onClick={toggleFullscreen}

@@ -15,7 +15,11 @@ import {
   Layers,
   Tv,
   Maximize,
-  Monitor
+  Monitor,
+  ZoomIn,
+  ZoomOut,
+  Camera,
+  Maximize2
 } from 'lucide-react';
 import { GameSettings } from '../types';
 import { soundManager } from '../utils/audio';
@@ -31,6 +35,24 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onUpdateSettings,
   onBack
 }) => {
+  const adjustCameraZoom = (amount: number) => {
+    soundManager.playClick();
+    const current = settings.cameraZoom ?? 100;
+    const nextVal = Math.min(130, Math.max(70, current + amount));
+    onUpdateSettings({ ...settings, cameraZoom: nextVal });
+  };
+
+  const setCameraZoomPreset = (zoom: number) => {
+    soundManager.playClick();
+    onUpdateSettings({ ...settings, cameraZoom: zoom });
+  };
+
+  const toggleCameraFit = () => {
+    soundManager.playClick();
+    const nextFit = settings.cameraFit === 'contain' ? 'cover' : 'contain';
+    onUpdateSettings({ ...settings, cameraFit: nextFit });
+  };
+
   const adjustFontSize = (amount: number) => {
     soundManager.playClick();
     const nextVal = Math.min(76, Math.max(20, settings.questionFontSize + amount));
@@ -52,7 +74,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       tiltSensitivity: 9,
       tiltHoldFrames: 8,
       transparencyPercent: 25,
-      enableBlur: false
+      enableBlur: false,
+      cameraZoom: 85,
+      cameraFit: 'cover'
     });
   };
 
@@ -65,7 +89,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       tiltSensitivity: 10,
       tiltHoldFrames: 10,
       transparencyPercent: 20,
-      enableBlur: false
+      enableBlur: false,
+      cameraZoom: 100,
+      cameraFit: 'cover'
     });
   };
 
@@ -218,6 +244,140 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             >
               <Maximize className="w-3.5 h-3.5" />
               <span>Layar Penuh (Fullscreen)</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ================= PENGATURAN KAMERA: ZOOM (KE LUAS) ================= */}
+        <div className="bg-slate-900/85 p-5 md:p-6 rounded-2xl border border-cyan-500/40 shadow-inner">
+          <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+            <label className="text-sm md:text-base font-bold text-gray-200 uppercase tracking-wider flex items-center gap-2">
+              <Camera className="w-5 h-5 text-cyan-400" />
+              <span>Pengaturan Kamera: Zoom (ke Luas)</span>
+            </label>
+            <span className="text-xs text-cyan-300 font-mono font-bold bg-cyan-950/80 px-2.5 py-1 rounded-full border border-cyan-700/60 shadow">
+              {(settings.cameraZoom ?? 100) < 100
+                ? `🔍 ${settings.cameraZoom}% (Luas / Wide)`
+                : (settings.cameraZoom ?? 100) === 100
+                ? `100% (Normal)`
+                : `🔍 ${settings.cameraZoom}% (Dekat)`}
+            </span>
+          </div>
+
+          <p className="text-xs text-gray-300 mb-3.5 leading-relaxed">
+            Perluas sudut pandang kamera (*Zoom Out / Wide Angle*) agar kepala dan tubuh siswa leluasa tertangkap kamera tanpa terpotong di tepi layar, sangat ideal saat bermain 2 orang atau jarak dekat di depan TV/Smartboard.
+          </p>
+
+          {/* Stepper Buttons */}
+          <div className="flex items-center justify-center bg-slate-800 rounded-xl overflow-hidden border border-slate-600 mb-3">
+            <button
+              type="button"
+              onClick={() => adjustCameraZoom(-5)}
+              className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 font-bold text-xl text-white transition-colors w-16 cursor-pointer"
+              title="Perluas Sudut Pandang (Zoom Luas / Mundur)"
+              aria-label="Perluas Sudut Pandang"
+            >
+              -
+            </button>
+            <div className="flex-1 text-center font-bold text-cyan-300 text-lg">
+              {settings.cameraZoom ?? 100}%
+              <span className="text-xs font-normal text-gray-400 ml-2">
+                {(settings.cameraZoom ?? 100) <= 75
+                  ? '(Ultra Luas / Sangat Wide)'
+                  : (settings.cameraZoom ?? 100) <= 90
+                  ? '(Sudut Luas)'
+                  : (settings.cameraZoom ?? 100) === 100
+                  ? '(Normal)'
+                  : '(Zoom Masuk)'}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => adjustCameraZoom(5)}
+              className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 font-bold text-xl text-white transition-colors w-16 cursor-pointer"
+              title="Perbesar / Zoom Masuk"
+              aria-label="Perbesar"
+            >
+              +
+            </button>
+          </div>
+
+          {/* Quick Preset Buttons */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+            <button
+              type="button"
+              onClick={() => setCameraZoomPreset(75)}
+              className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
+                (settings.cameraZoom ?? 100) === 75
+                  ? 'bg-cyan-600/90 text-white border-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+                  : 'bg-slate-800 text-gray-300 border-slate-700 hover:border-slate-500'
+              }`}
+            >
+              <ZoomOut className="w-4 h-4 text-cyan-300" />
+              <span>Ultra Luas (75%)</span>
+              <span className="text-[10px] text-gray-400">2 Pemain / Dekat</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCameraZoomPreset(85)}
+              className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
+                (settings.cameraZoom ?? 100) === 85
+                  ? 'bg-cyan-600/90 text-white border-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+                  : 'bg-slate-800 text-gray-300 border-slate-700 hover:border-slate-500'
+              }`}
+            >
+              <Maximize2 className="w-4 h-4 text-sky-300" />
+              <span>Luas (85%)</span>
+              <span className="text-[10px] text-gray-400">Rekomendasi TV</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCameraZoomPreset(100)}
+              className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
+                (settings.cameraZoom ?? 100) === 100
+                  ? 'bg-cyan-600/90 text-white border-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+                  : 'bg-slate-800 text-gray-300 border-slate-700 hover:border-slate-500'
+              }`}
+            >
+              <Camera className="w-4 h-4 text-emerald-300" />
+              <span>Normal (100%)</span>
+              <span className="text-[10px] text-gray-400">Standar Bawaan</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCameraZoomPreset(115)}
+              className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
+                (settings.cameraZoom ?? 100) === 115
+                  ? 'bg-cyan-600/90 text-white border-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+                  : 'bg-slate-800 text-gray-300 border-slate-700 hover:border-slate-500'
+              }`}
+            >
+              <ZoomIn className="w-4 h-4 text-amber-300" />
+              <span>Dekat (115%)</span>
+              <span className="text-[10px] text-gray-400">Fokus Wajah</span>
+            </button>
+          </div>
+
+          {/* Toggle Mode Fit Kamera */}
+          <div className="flex items-center justify-between p-2.5 bg-slate-800/80 rounded-xl border border-slate-700 text-xs">
+            <span className="text-gray-300 flex items-center gap-1.5">
+              <span>Mode Tampilan Bidang:</span>
+            </span>
+            <button
+              type="button"
+              onClick={toggleCameraFit}
+              className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer border ${
+                settings.cameraFit === 'contain'
+                  ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50'
+                  : 'bg-slate-700 text-cyan-300 border-slate-600'
+              }`}
+            >
+              {settings.cameraFit === 'contain'
+                ? '📐 Luas Utuh (Tanpa Terpotong)'
+                : '📺 Penuh Layar (Cover Otomatis)'}
             </button>
           </div>
         </div>

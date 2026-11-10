@@ -4,11 +4,9 @@ import path from 'path';
 import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
-  // Deteksi otomatis base path:
-  // - Jika VITE_BASE ditentukan, gunakan VITE_BASE
-  // - Jika berjalan di GitHub Actions, gunakan '/game-ar-gerak-kepala/'
-  // - Untuk lingkungan lokal / AI Studio Cloud Run, gunakan '/'
-  const base = process.env.VITE_BASE || (process.env.GITHUB_ACTIONS ? '/game-ar-gerak-kepala/' : '/');
+  // Base path relatif './' agar 100% kompatibel di GitHub Pages (apapun nama repositorinya),
+  // custom domain, maupun subfolder tanpa menyebabkan blank putih karena salah path assets.
+  const base = process.env.VITE_BASE || './';
 
   return {
     base,

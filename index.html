@@ -14,13 +14,30 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+      html, body {
+        background-color: #020617;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+    </style>
     
-    <!-- MediaPipe scripts for FaceMesh and Camera -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <!-- MediaPipe scripts for FaceMesh and Camera (defer agar tidak memblokir render utama) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
   </head>
   <body class="bg-slate-950 text-white antialiased overflow-hidden select-none">
-    <div id="root"></div>
+    <div id="root">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background-color:#020617;color:#ffffff;font-family:system-ui,-apple-system,sans-serif;text-align:center;padding:24px;">
+        <div style="width:48px;height:48px;border:4px solid rgba(56,189,248,0.2);border-top-color:#38bdf8;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px;"></div>
+        <h2 style="font-size:22px;font-weight:bold;margin:0 0 8px 0;color:#38bdf8;font-family:'Fredoka One',cursive,sans-serif;">Game AR - Gerak Kepala</h2>
+        <p style="font-size:14px;color:#94a3b8;margin:0;">Memuat antarmuka &amp; modul game...</p>
+        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
